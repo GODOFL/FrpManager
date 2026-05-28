@@ -1,0 +1,805 @@
+<Window x:Class="FrpManager.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Icon="/app.ico"
+        Title="FrpManager" Height="820" Width="1200"
+        MinHeight="640" MinWidth="920"
+        Background="{StaticResource BgMainBrush}"
+        WindowStartupLocation="CenterScreen"
+        FontFamily="Segoe UI">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="60"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="34"/>
+        </Grid.RowDefinitions>
+
+        <!-- ══ Header ═══════════════════════════════════════════════════════ -->
+        <Border Grid.Row="0" Background="{StaticResource BgPanelBrush}"
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
+            <Grid Margin="20,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <!-- Logo -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Width="32" Height="32" CornerRadius="8"
+                            Background="{StaticResource AccentBrush}" Margin="0,0,10,0">
+                        <TextBlock Text="F" Foreground="White" FontSize="18"
+                                   FontWeight="Bold" FontFamily="Segoe UI Black"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="FrpManager"
+                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                   FontSize="16" FontWeight="Bold"/>
+                        <TextBlock Text="可视化 FRP 配置工具"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   FontSize="11"/>
+                    </StackPanel>
+                </StackPanel>
+                <!-- Toolbar -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Style="{StaticResource SecondaryBtn}" Click="Btn_Open" Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📂" Margin="0,0,5,0"/>
+                            <TextBlock Text="打开"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource SecondaryBtn}" Click="Btn_Save" Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="💾" Margin="0,0,5,0"/>
+                            <TextBlock Text="保存"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="BtnStart" Style="{StaticResource GreenBtn}" Click="Btn_Start">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock x:Name="TxtStartIcon" Text="▶" Margin="0,0,6,0" FontSize="11"/>
+                            <TextBlock x:Name="TxtStartLabel" Text="启动 frpc"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ══ Body ═════════════════════════════════════════════════════════ -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="290" MinWidth="220" MaxWidth="360"/>
+                <ColumnDefinition Width="4"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- ── Sidebar ───────────────────────────────────────────────── -->
+            <Border Grid.Column="0" Background="{StaticResource BgSidebarBrush}"
+                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>         <!-- proxy header -->
+                        <RowDefinition Height="*" MinHeight="70"/>  <!-- proxy list -->
+                        <RowDefinition Height="Auto"/>         <!-- visitor header -->
+                        <RowDefinition Height="0.55*" MinHeight="55"/> <!-- visitor list -->
+                        <RowDefinition Height="Auto"/>         <!-- templates -->
+                    </Grid.RowDefinitions>
+
+                    <!-- Proxy header -->
+                    <Border Grid.Row="0" Padding="12,10,12,6">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="代理规则"
+                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                           FontSize="13" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="TxtProxyCount"
+                                           Foreground="{StaticResource TextMutedBrush}"
+                                           FontSize="11" Margin="6,0,0,0"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <Button Grid.Column="1" Style="{StaticResource PrimaryBtn}"
+                                    Padding="9,5" Click="Btn_AddProxy">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="+" FontSize="14" FontWeight="Bold" Margin="0,0,3,0"/>
+                                    <TextBlock Text="添加"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </Border>
+
+                    <!-- Proxy list -->
+                    <ListBox Grid.Row="1" x:Name="ProxyList"
+                             Background="Transparent" BorderThickness="0"
+                             Padding="8,0" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             ItemContainerStyle="{StaticResource ProxyListItem}"
+                             SelectionChanged="ProxyList_Changed">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" CornerRadius="5" Padding="5,2"
+                                            Margin="0,0,8,0"
+                                            Background="{StaticResource AccentLightBrush}">
+                                        <TextBlock Text="{Binding TypeLabel}"
+                                                   Foreground="{StaticResource AccentDarkBrush}"
+                                                   FontSize="10" FontWeight="Bold"
+                                                   FontFamily="Consolas"/>
+                                    </Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Name}"
+                                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                                   FontSize="13" FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding Summary}"
+                                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                                   FontSize="11" FontFamily="Consolas"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                    <Button Grid.Column="2" Style="{StaticResource DangerBtn}"
+                                            Content="✕" Tag="{Binding}" Click="Btn_DeleteProxy"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <!-- Visitor header -->
+                    <Border Grid.Row="2"
+                            BorderBrush="{StaticResource BorderBrush}"
+                            BorderThickness="0,1,0,0"
+                            Padding="12,10,12,6">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border CornerRadius="4" Padding="5,1" Margin="0,0,6,0"
+                                        Background="{StaticResource AccentTealLightBrush}">
+                                    <TextBlock Text="vis"
+                                               Foreground="{StaticResource AccentTealBrush}"
+                                               FontSize="10" FontWeight="Bold"
+                                               FontFamily="Consolas"/>
+                                </Border>
+                                <TextBlock Text="访客规则"
+                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                           FontSize="13" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="TxtVisitorCount"
+                                           Foreground="{StaticResource TextMutedBrush}"
+                                           FontSize="11" Margin="6,0,0,0"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <Button Grid.Column="1" Style="{StaticResource PrimaryBtn}"
+                                    Padding="9,5" Click="Btn_AddVisitor"
+                                    Background="{StaticResource AccentTealBrush}">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="+" FontSize="14" FontWeight="Bold" Margin="0,0,3,0"/>
+                                    <TextBlock Text="添加"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </Border>
+
+                    <!-- Visitor list -->
+                    <ListBox Grid.Row="3" x:Name="VisitorList"
+                             Background="Transparent" BorderThickness="0"
+                             Padding="8,0" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             ItemContainerStyle="{StaticResource VisitorListItem}"
+                             SelectionChanged="VisitorList_Changed">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" CornerRadius="5" Padding="5,2"
+                                            Margin="0,0,8,0"
+                                            Background="{StaticResource AccentTealLightBrush}">
+                                        <TextBlock Text="{Binding TypeLabel}"
+                                                   Foreground="{StaticResource AccentTealBrush}"
+                                                   FontSize="10" FontWeight="Bold"
+                                                   FontFamily="Consolas"/>
+                                    </Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Name}"
+                                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                                   FontSize="13" FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding Summary}"
+                                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                                   FontSize="11" FontFamily="Consolas"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                    <Button Grid.Column="2" Style="{StaticResource DangerBtn}"
+                                            Content="✕" Tag="{Binding}" Click="Btn_DeleteVisitor"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <!-- Templates -->
+                    <Border Grid.Row="4"
+                            BorderBrush="{StaticResource BorderBrush}"
+                            BorderThickness="0,1,0,0" Padding="10,8">
+                        <StackPanel>
+                            <TextBlock Text="代理模板"
+                                       Foreground="{StaticResource TextMutedBrush}"
+                                       FontSize="10" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <WrapPanel Margin="0,0,0,6">
+                                <Button Style="{StaticResource IconBtn}" Content="🔌 TCP"   Click="T_Tcp"   Margin="0,0,4,3"/>
+                                <Button Style="{StaticResource IconBtn}" Content="🖥 SSH"   Click="T_Ssh"   Margin="0,0,4,3"/>
+                                <Button Style="{StaticResource IconBtn}" Content="🖱 RDP"   Click="T_Rdp"   Margin="0,0,4,3"/>
+                                <Button Style="{StaticResource IconBtn}" Content="🌐 HTTP"  Click="T_Web"   Margin="0,0,4,3"/>
+                                <Button Style="{StaticResource IconBtn}" Content="🔒 HTTPS" Click="T_Https" Margin="0,0,4,3"/>
+                                <Button Style="{StaticResource IconBtn}" Content="📡 UDP"   Click="T_Udp"   Margin="0,0,4,3"/>
+                                <Button Style="{StaticResource IconBtn}" Content="⛏ MC"    Click="T_Mc"    Margin="0,0,4,3"/>
+                                <Button Style="{StaticResource IconBtn}" Content="🔐 STCP"  Click="T_Stcp"  Margin="0,0,4,3"/>
+                            </WrapPanel>
+                            <TextBlock Text="访客模板"
+                                       Foreground="{StaticResource TextMutedBrush}"
+                                       FontSize="10" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <WrapPanel>
+                                <Button Style="{StaticResource TealIconBtn}" Content="👁 STCP访客" Click="T_Visitor" Margin="0,0,4,0"/>
+                            </WrapPanel>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- GridSplitter -->
+            <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch"
+                          Background="{StaticResource BorderBrush}" Cursor="SizeWE"/>
+
+            <!-- ── Right tabs ─────────────────────────────────────────────── -->
+            <TabControl Grid.Column="2" x:Name="MainTabs"
+                        Style="{StaticResource SkyTabControl}">
+
+                <!-- Tab 1: Editor (proxy + visitor) -->
+                <TabItem Header="⚙  编辑器" Style="{StaticResource SkyTabItem}">
+                    <Grid Background="{StaticResource BgMainBrush}">
+                        <!-- Empty state -->
+                        <StackPanel x:Name="EmptyState"
+                                    VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <TextBlock Text="🔌" FontSize="52" HorizontalAlignment="Center"
+                                       Margin="0,0,0,14"/>
+                            <TextBlock Text="从左侧选择规则，或点击+ 添加新建"
+                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                       FontSize="14" HorizontalAlignment="Center"/>
+                        </StackPanel>
+
+                        <!-- Proxy editor -->
+                        <ScrollViewer x:Name="ProxyEditorPanel" Visibility="Collapsed"
+                                      VerticalScrollBarVisibility="Auto" Margin="28,20,28,12">
+                            <StackPanel MaxWidth="620">
+                                <TextBlock x:Name="TxtProxyTitle" Text="编辑代理规则"
+                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                           FontSize="20" FontWeight="Bold" Margin="0,0,0,20"/>
+
+                                <!-- Basic -->
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="基本信息" Style="{StaticResource SectionLabel}"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="16"/>
+                                                <ColumnDefinition Width="170"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="代理名称" Style="{StaticResource FieldLabel}"/>
+                                                <TextBox x:Name="F_Name" Style="{StaticResource SkyTextBox}"
+                                                         Tag="例：ssh-home" TextChanged="Proxy_FieldChanged"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="2">
+                                                <TextBlock Text="代理类型" Style="{StaticResource FieldLabel}"/>
+                                                <ComboBox x:Name="F_Type" Style="{StaticResource SkyComboBox}"
+                                                          SelectionChanged="Proxy_TypeChanged">
+                                                    <ComboBoxItem Content="tcp" IsSelected="True"/>
+                                                    <ComboBoxItem Content="udp"/>
+                                                    <ComboBoxItem Content="http"/>
+                                                    <ComboBoxItem Content="https"/>
+                                                    <ComboBoxItem Content="stcp"/>
+                                                    <ComboBoxItem Content="xtcp"/>
+                                                </ComboBox>
+                                            </StackPanel>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Local service -->
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="本地服务" Style="{StaticResource SectionLabel}"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="2*"/>
+                                                <ColumnDefinition Width="16"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="本地 IP 地址" Style="{StaticResource FieldLabel}"/>
+                                                <TextBox x:Name="F_LocalIp" Style="{StaticResource SkyTextBox}"
+                                                         Tag="127.0.0.1" TextChanged="Proxy_FieldChanged"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="2">
+                                                <TextBlock Text="本地端口" Style="{StaticResource FieldLabel}"/>
+                                                <TextBox x:Name="F_LocalPort" Style="{StaticResource SkyTextBox}"
+                                                         Tag="80" TextChanged="Proxy_FieldChanged"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- TCP/UDP remote port -->
+                                <Border x:Name="CardRemote" Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="远程端口（TCP / UDP）" Style="{StaticResource SectionLabel}"/>
+                                        <TextBlock Text="远程端口" Style="{StaticResource FieldLabel}"/>
+                                        <TextBox x:Name="F_RemotePort" Style="{StaticResource SkyTextBox}"
+                                                 Tag="8080" TextChanged="Proxy_FieldChanged"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- HTTP/HTTPS domains -->
+                                <Border x:Name="CardHttp" Style="{StaticResource Card}" Visibility="Collapsed">
+                                    <StackPanel>
+                                        <TextBlock Text="域名设置（HTTP / HTTPS）" Style="{StaticResource SectionLabel}"/>
+                                        <TextBlock Text="自定义域名" Style="{StaticResource FieldLabel}"/>
+                                        <TextBox x:Name="F_Domains" Style="{StaticResource SkyTextBox}"
+                                                 Tag="example.com" Margin="0,0,0,12"
+                                                 TextChanged="Proxy_FieldChanged"/>
+                                        <TextBlock Text="子域名（需服务端配置 subdomain_host）"
+                                                   Style="{StaticResource FieldLabel}"/>
+                                        <TextBox x:Name="F_Subdomain" Style="{StaticResource SkyTextBox}"
+                                                 Tag="myapp" TextChanged="Proxy_FieldChanged"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- STCP/XTCP secret key (optional) -->
+                                <Border x:Name="CardSecret" Style="{StaticResource Card}" Visibility="Collapsed">
+                                    <StackPanel>
+                                        <TextBlock Text="密钥设置（STCP / XTCP）" Style="{StaticResource SectionLabel}"/>
+                                        <TextBlock Text="密钥 secretKey（可选，留空表示不使用密钥验证）"
+                                                   Style="{StaticResource FieldLabel}"/>
+                                        <TextBox x:Name="F_Sk" Style="{StaticResource SkyTextBox}"
+                                                 Tag="留空则不使用密钥" TextChanged="Proxy_FieldChanged"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Transport options -->
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="传输选项" Style="{StaticResource SectionLabel}"/>
+                                        <StackPanel Orientation="Horizontal">
+                                            <CheckBox x:Name="F_Encrypt" Style="{StaticResource SkyCheckBox}"
+                                                      Content="启用加密 (useEncryption)"
+                                                      Margin="0,0,28,0"
+                                                      Checked="Proxy_CheckChanged" Unchecked="Proxy_CheckChanged"/>
+                                            <CheckBox x:Name="F_Compress" Style="{StaticResource SkyCheckBox}"
+                                                      Content="启用压缩 (useCompression)"
+                                                      Checked="Proxy_CheckChanged" Unchecked="Proxy_CheckChanged"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <!-- Visitor [vis] editor -->
+                        <ScrollViewer x:Name="VisitorEditorPanel" Visibility="Collapsed"
+                                      VerticalScrollBarVisibility="Auto" Margin="28,20,28,12">
+                            <StackPanel MaxWidth="620">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                                    <Border CornerRadius="6" Padding="8,3" Margin="0,0,10,0"
+                                            Background="{StaticResource AccentTealLightBrush}"
+                                            VerticalAlignment="Center">
+                                        <TextBlock Text="[vis]"
+                                                   Foreground="{StaticResource AccentTealBrush}"
+                                                   FontSize="13" FontWeight="Bold"
+                                                   FontFamily="Consolas"/>
+                                    </Border>
+                                    <TextBlock x:Name="TxtVisitorTitle" Text="编辑访客规则"
+                                               Foreground="{StaticResource TextPrimaryBrush}"
+                                               FontSize="20" FontWeight="Bold"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+
+                                <!-- Visitor basic -->
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="基本信息" Style="{StaticResource SectionLabel}"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="16"/>
+                                                <ColumnDefinition Width="170"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="访客名称" Style="{StaticResource FieldLabel}"/>
+                                                <TextBox x:Name="V_Name" Style="{StaticResource SkyTextBox}"
+                                                         Tag="例：stcp-visitor" TextChanged="Visitor_FieldChanged"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="2">
+                                                <TextBlock Text="访客类型" Style="{StaticResource FieldLabel}"/>
+                                                <ComboBox x:Name="V_Type" Style="{StaticResource SkyComboBox}"
+                                                          SelectionChanged="Visitor_TypeChanged">
+                                                    <ComboBoxItem Content="stcp" IsSelected="True"/>
+                                                    <ComboBoxItem Content="xtcp"/>
+                                                </ComboBox>
+                                            </StackPanel>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Server-side proxy info -->
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="对应服务端代理" Style="{StaticResource SectionLabel}"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="16"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="代理名称 (serverName)" Style="{StaticResource FieldLabel}"/>
+                                                <TextBox x:Name="V_ServerName" Style="{StaticResource SkyTextBox}"
+                                                         Tag="stcp-server" TextChanged="Visitor_FieldChanged"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="2">
+                                                <TextBlock Text="所属用户 (serverUser，可选)" Style="{StaticResource FieldLabel}"/>
+                                                <TextBox x:Name="V_ServerUser" Style="{StaticResource SkyTextBox}"
+                                                         Tag="留空" TextChanged="Visitor_FieldChanged"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Visitor bind -->
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="本地绑定" Style="{StaticResource SectionLabel}"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="2*"/>
+                                                <ColumnDefinition Width="16"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="绑定地址 (bindAddr)" Style="{StaticResource FieldLabel}"/>
+                                                <TextBox x:Name="V_BindAddr" Style="{StaticResource SkyTextBox}"
+                                                         Tag="127.0.0.1" TextChanged="Visitor_FieldChanged"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="2">
+                                                <TextBlock Text="绑定端口 (bindPort)" Style="{StaticResource FieldLabel}"/>
+                                                <TextBox x:Name="V_BindPort" Style="{StaticResource SkyTextBox}"
+                                                         Tag="9000" TextChanged="Visitor_FieldChanged"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Visitor optional secret key -->
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="密钥（可选）" Style="{StaticResource SectionLabel}"/>
+                                        <TextBlock Text="secretKey — 留空则不使用密钥验证，需与服务端代理设置一致"
+                                                   Style="{StaticResource FieldLabel}"/>
+                                        <TextBox x:Name="V_Sk" Style="{StaticResource SkyTextBox}"
+                                                 Tag="留空则不使用密钥" TextChanged="Visitor_FieldChanged"/>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
+                </TabItem>
+
+                <!-- Tab 2: Server config + FRP path -->
+                <TabItem Header="🖥  服务器配置" Style="{StaticResource SkyTabItem}">
+                    <ScrollViewer Background="{StaticResource BgMainBrush}"
+                                  VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="28,20,28,12" MaxWidth="620">
+                            <TextBlock Text="服务器连接配置"
+                                       Foreground="{StaticResource TextPrimaryBrush}"
+                                       FontSize="20" FontWeight="Bold" Margin="0,0,0,20"/>
+
+                            <!-- frpc path -->
+                            <Border Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <TextBlock Text="frpc 可执行文件路径" Style="{StaticResource SectionLabel}"/>
+                                    <Grid Margin="0,0,0,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="8"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="8"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <ComboBox x:Name="CmbFrpcPath"
+                                                  Style="{StaticResource SkyComboBox}"
+                                                  IsEditable="True"
+                                                  SelectionChanged="FrpcPath_Changed"/>
+                                        <Button Grid.Column="2" Style="{StaticResource SecondaryBtn}"
+                                                Content="浏览..." Click="Btn_BrowseFrpc" Padding="12,7"/>
+                                        <Button Grid.Column="4" Style="{StaticResource PrimaryBtn}"
+                                                Content="🔍 自动扫描" Click="Btn_ScanFrpc" Padding="12,7"/>
+                                    </Grid>
+                                    <TextBlock x:Name="TxtFrpcPathHint"
+                                               Text="尚未设置路径，请浏览选择或点击自动扫描"
+                                               Foreground="{StaticResource TextMutedBrush}"
+                                               FontSize="11"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Connection -->
+                            <Border Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <TextBlock Text="连接参数" Style="{StaticResource SectionLabel}"/>
+                                    <Grid Margin="0,0,0,14">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="2*"/>
+                                            <ColumnDefinition Width="16"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="服务器地址" Style="{StaticResource FieldLabel}"/>
+                                            <TextBox x:Name="S_Addr" Style="{StaticResource SkyTextBox}"
+                                                     Tag="your-server.com 或 IP 地址"
+                                                     TextChanged="Server_FieldChanged"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="端口" Style="{StaticResource FieldLabel}"/>
+                                            <TextBox x:Name="S_Port" Style="{StaticResource SkyTextBox}"
+                                                     Tag="7000" TextChanged="Server_FieldChanged"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    <StackPanel x:Name="TokenPanel" Visibility="Collapsed">
+                                        <TextBlock Text="认证 Token" Style="{StaticResource FieldLabel}" Margin="0,10,0,5"/>
+                                        <TextBox x:Name="S_Token" Style="{StaticResource SkyTextBox}"
+                                                 Tag="与 frps.toml 中的 token 保持一致"
+                                                 TextChanged="Server_FieldChanged"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Security -->
+                            <Border Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <TextBlock Text="安全与传输" Style="{StaticResource SectionLabel}"/>
+                                    <Grid Margin="0,0,0,14">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="16"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="认证方式" Style="{StaticResource FieldLabel}"/>
+                                            <ComboBox x:Name="S_AuthMethod" Style="{StaticResource SkyComboBox}"
+                                                      SelectionChanged="Server_AuthChanged">
+                                                <ComboBoxItem Content="none（不认证）" IsSelected="True"/>
+                                                <ComboBoxItem Content="token"/>
+                                                <ComboBoxItem Content="oidc"/>
+                                            </ComboBox>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="日志级别" Style="{StaticResource FieldLabel}"/>
+                                            <ComboBox x:Name="S_LogLevel" Style="{StaticResource SkyComboBox}"
+                                                      SelectionChanged="Server_FieldChanged">
+                                                <ComboBoxItem Content="trace"/>
+                                                <ComboBoxItem Content="debug"/>
+                                                <ComboBoxItem Content="info" IsSelected="True"/>
+                                                <ComboBoxItem Content="warn"/>
+                                                <ComboBoxItem Content="error"/>
+                                            </ComboBox>
+                                        </StackPanel>
+                                    </Grid>
+                                    <CheckBox x:Name="S_Tls" Style="{StaticResource SkyCheckBox}"
+                                              Content="启用 TLS 加密传输 (transport.tls.enable)"
+                                              Checked="Server_CheckChanged" Unchecked="Server_CheckChanged"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Log file -->
+                            <Border Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <TextBlock Text="日志文件" Style="{StaticResource SectionLabel}"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="8"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox x:Name="S_LogFile" Style="{StaticResource SkyTextBox}"
+                                                 Tag="./frpc.log（留空则输出到终端）"
+                                                 TextChanged="Server_FieldChanged"/>
+                                        <Button Grid.Column="2" Style="{StaticResource SecondaryBtn}"
+                                                Content="浏览..." Click="Btn_BrowseLog"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <!-- Tab 3: Config preview -->
+                <TabItem Header="📄  配置预览" Style="{StaticResource SkyTabItem}">
+                    <Grid Background="{StaticResource BgMainBrush}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Border Grid.Row="0" Background="{StaticResource BgPanelBrush}"
+                                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1"
+                                Padding="16,10">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="frpc.toml 预览"
+                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                           FontSize="14" FontWeight="SemiBold"
+                                           VerticalAlignment="Center" Margin="0,0,18,0"/>
+                                <Button Style="{StaticResource SecondaryBtn}" Content="🔄 刷新"
+                                        Click="Btn_Refresh" Margin="0,0,8,0"/>
+                                <Button Style="{StaticResource SecondaryBtn}" Content="📋 复制"
+                                        Click="Btn_CopyAll" Margin="0,0,8,0"/>
+                                <Button Style="{StaticResource PrimaryBtn}" Content="💾 导出 frpc.toml"
+                                        Click="Btn_ExportFrpc" Margin="0,0,8,0"/>
+                                <Button Style="{StaticResource SecondaryBtn}" Content="📤 导出 frps.toml"
+                                        Click="Btn_ExportFrps"/>
+                            </StackPanel>
+                        </Border>
+                        <TextBox Grid.Row="1" x:Name="PreviewBox"
+                                 Background="#F0F8FF" Foreground="#1A5080"
+                                 FontFamily="Cascadia Code, Consolas, Courier New" FontSize="13"
+                                 BorderThickness="0" Padding="22"
+                                 IsReadOnly="True" TextWrapping="NoWrap"
+                                 HorizontalScrollBarVisibility="Auto"
+                                 VerticalScrollBarVisibility="Auto" AcceptsReturn="True"/>
+                    </Grid>
+                </TabItem>
+
+                <!-- Tab 4: Terminal -->
+                <TabItem Header="🖥  终端" Style="{StaticResource SkyTabItem}">
+                    <Grid Background="{StaticResource TerminalBgBrush}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <!-- Terminal toolbar -->
+                        <Border Grid.Row="0" Background="#0A1520"
+                                BorderBrush="#1A3050" BorderThickness="0,0,0,1" Padding="12,8">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Ellipse x:Name="TermDot" Width="9" Height="9"
+                                             Fill="#555" Margin="0,0,8,0"/>
+                                    <TextBlock x:Name="TxtTermStatus"
+                                               Text="frpc 未运行"
+                                               Foreground="#5A8AAA" FontSize="12"
+                                               FontFamily="Consolas"/>
+                                </StackPanel>
+                                <Button Grid.Column="1" Click="Btn_ClearTerminal"
+                                        Background="Transparent" Foreground="#5A8AAA"
+                                        BorderThickness="0" Padding="8,4" Cursor="Hand"
+                                        FontSize="12" FontFamily="Consolas"
+                                        Content="清空"/>
+                            </Grid>
+                        </Border>
+                        <!-- RichTextBox terminal output -->
+                        <RichTextBox Grid.Row="1" x:Name="TerminalBox"
+                                     Background="{StaticResource TerminalBgBrush}"
+                                     Foreground="{StaticResource TerminalFgBrush}"
+                                     FontFamily="Cascadia Code, Consolas, Courier New"
+                                     FontSize="12.5"
+                                     BorderThickness="0" Padding="14,10"
+                                     IsReadOnly="True"
+                                     IsDocumentEnabled="True"
+                                     VerticalScrollBarVisibility="Auto"
+                                     HorizontalScrollBarVisibility="Auto">
+                            <FlowDocument PagePadding="0" PageWidth="9999">
+                                <FlowDocument.Resources>
+                                    <Style TargetType="Paragraph">
+                                        <Setter Property="Margin" Value="0"/>
+                                        <Setter Property="LineHeight" Value="18"/>
+                                    </Style>
+                                </FlowDocument.Resources>
+                            </FlowDocument>
+                        </RichTextBox>
+                    </Grid>
+                </TabItem>
+
+                <!-- Tab 5: Download -->
+                <TabItem Header="⬇  下载 FRP" Style="{StaticResource SkyTabItem}">
+                    <Grid Background="{StaticResource BgMainBrush}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Border Grid.Row="0" Background="{StaticResource BgPanelBrush}"
+                                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1"
+                                Padding="16,12">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="从 GitHub 下载 FRP 二进制包"
+                                               Foreground="{StaticResource TextPrimaryBrush}"
+                                               FontSize="14" FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="TxtRelInfo"
+                                               Text="点击「检查更新」加载版本列表"
+                                               Foreground="{StaticResource TextSecondaryBrush}"
+                                               FontSize="11" Margin="0,3,0,0"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                    <Button Style="{StaticResource SecondaryBtn}" Content="🔍 检查更新"
+                                            Click="Btn_CheckUpdate" Margin="0,0,8,0"/>
+                                    <Button Style="{StaticResource SecondaryBtn}" Content="🌐 打开 GitHub"
+                                            Click="Btn_OpenGithub"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="16,12">
+                            <StackPanel x:Name="AssetPanel">
+                                <TextBlock x:Name="TxtAssetHint"
+                                           Text="请点击上方「检查更新」按钮加载发布列表"
+                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                           FontSize="13" Margin="0,20"
+                                           HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </ScrollViewer>
+                        <Border Grid.Row="2" x:Name="ProgressPanel"
+                                Background="{StaticResource BgPanelBrush}"
+                                BorderBrush="{StaticResource BorderBrush}"
+                                BorderThickness="0,1,0,0" Padding="16,12"
+                                Visibility="Collapsed">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,6">
+                                    <TextBlock x:Name="TxtDlFile"
+                                               Foreground="{StaticResource TextPrimaryBrush}" FontSize="12"/>
+                                    <TextBlock x:Name="TxtDlPct" HorizontalAlignment="Right"
+                                               Foreground="{StaticResource AccentDarkBrush}"
+                                               FontSize="12" FontFamily="Consolas"/>
+                                </Grid>
+                                <ProgressBar x:Name="DlProgress"
+                                             Style="{StaticResource SkyProgress}" Maximum="100"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </TabItem>
+            </TabControl>
+        </Grid>
+
+        <!-- ══ Status bar ════════════════════════════════════════════════════ -->
+        <Border Grid.Row="2" Background="{StaticResource BgPanelBrush}"
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
+            <Grid Margin="16,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="TxtStatus" Foreground="{StaticResource TextSecondaryBrush}"
+                           FontSize="11" VerticalAlignment="Center" Text="就绪"/>
+                <TextBlock x:Name="TxtCounts" Grid.Column="1"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           FontSize="11" VerticalAlignment="Center" Margin="0,0,18,0"/>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Ellipse x:Name="StatusDot" Width="8" Height="8" Fill="#C0C0C0" Margin="0,0,6,0"/>
+                    <TextBlock x:Name="TxtFrpStatus" Text="frpc 未运行"
+                               Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

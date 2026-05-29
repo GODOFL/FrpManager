@@ -262,8 +262,50 @@
             <TabControl Grid.Column="2" x:Name="MainTabs"
                         Style="{StaticResource SkyTabControl}">
 
-                <!-- Tab 1: Editor (proxy + visitor) -->
-                <TabItem Header="⚙  编辑器" Style="{StaticResource SkyTabItem}">
+                <!-- Tab: 配置文件库 -->
+                <TabItem x:Name="TabTomlLib" Header="📁  配置文件库" Style="{StaticResource SkyTabItem}">
+                    <Grid Background="{StaticResource BgMainBrush}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- 顶栏 -->
+                        <Border Grid.Row="0" Background="{StaticResource BgPanelBrush}"
+                                BorderBrush="{StaticResource BorderBrush}"
+                                BorderThickness="0,0,0,1" Padding="16,10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="tomlset 配置文件库"
+                                               Foreground="{StaticResource TextPrimaryBrush}"
+                                               FontSize="14" FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="TxtTomlDir"
+                                               Foreground="{StaticResource TextSecondaryBrush}"
+                                               FontSize="11" Margin="0,2,0,0"/>
+                                </StackPanel>
+                                <Button Grid.Column="1" Style="{StaticResource SecondaryBtn}"
+                                        Content="🔄 刷新列表" Click="Btn_RefreshTomlList"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- 文件列表 -->
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="16,12">
+                            <StackPanel x:Name="TomlFilePanel">
+                                <TextBlock x:Name="TxtTomlHint"
+                                           Text="tomlset 文件夹为空，启动 frpc 后会自动生成配置文件"
+                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                           FontSize="13" HorizontalAlignment="Center" Margin="0,30"/>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
+                </TabItem>
+
+                <!-- Tab Editor (proxy + visitor) -->
+                <TabItem x:Name="TabEditor" Header="⚙  编辑器" Style="{StaticResource SkyTabItem}">
                     <Grid Background="{StaticResource BgMainBrush}">
                         <!-- Empty state -->
                         <StackPanel x:Name="EmptyState"
@@ -501,8 +543,8 @@
                     </Grid>
                 </TabItem>
 
-                <!-- Tab 2: Server config + FRP path -->
-                <TabItem Header="🖥  服务器配置" Style="{StaticResource SkyTabItem}">
+                <!-- Tab Server config + FRP path -->
+                <TabItem x:Name="TabServer" Header="🖥  服务器配置" Style="{StaticResource SkyTabItem}">
                     <ScrollViewer Background="{StaticResource BgMainBrush}"
                                   VerticalScrollBarVisibility="Auto">
                         <StackPanel Margin="28,20,28,12" MaxWidth="620">
@@ -628,8 +670,8 @@
                     </ScrollViewer>
                 </TabItem>
 
-                <!-- Tab 3: Config preview -->
-                <TabItem Header="📄  配置预览" Style="{StaticResource SkyTabItem}">
+                <!-- Tab Config preview -->
+                <TabItem x:Name="TabPreview" Header="📄  配置预览" Style="{StaticResource SkyTabItem}">
                     <Grid Background="{StaticResource BgMainBrush}">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -663,8 +705,8 @@
                     </Grid>
                 </TabItem>
 
-                <!-- Tab 4: Terminal -->
-                <TabItem Header="🖥  终端" Style="{StaticResource SkyTabItem}">
+                <!-- Tab Terminal -->
+                <TabItem x:Name="TabTerminal" Header="🖥  终端" Style="{StaticResource SkyTabItem}">
                     <Grid Background="{StaticResource TerminalBgBrush}">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -716,8 +758,8 @@
                     </Grid>
                 </TabItem>
 
-                <!-- Tab 5: Download -->
-                <TabItem Header="⬇  下载 FRP" Style="{StaticResource SkyTabItem}">
+                <!-- Tab Download -->
+                <TabItem x:Name="TabDownload" Header="⬇  下载 FRP" Style="{StaticResource SkyTabItem}">
                     <Grid Background="{StaticResource BgMainBrush}">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>

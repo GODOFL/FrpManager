@@ -39,6 +39,14 @@ namespace FrpManager.Views
         public MainWindow()
         {
             InitializeComponent();
+
+            MainTabs.SelectionChanged += (s, e) =>
+            {
+                // 配置文件库是第4个Tab（index从0算）
+                if (MainTabs.SelectedItem == TabTomlLib)
+                    LoadTomlFileList();
+            };
+
             ProxyList.ItemsSource   = _proxies;
             VisitorList.ItemsSource = _visitors;
             _settings = SettingsHelper.Load();
@@ -46,6 +54,193 @@ namespace FrpManager.Views
             LoadFrpcPathsToUI();
             RefreshPreview();
             SetStatus("就绪");
+        }
+
+        // ══ 配置文件库 ════════════════════════════════════════════════════════
+
+        void Btn_RefreshTomlList(object s, RoutedEventArgs e) => LoadTomlFileList();
+
+        void LoadTomlFileList()
+        {
+            string tomlDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tomlset");
+            TxtTomlDir.Text = tomlDir;
+            TomlFilePanel.Children.Clear();
+
+            if (!Directory.Exists(tomlDir))
+            {
+                TomlFilePanel.Children.Add(TxtTomlHint);
+                TxtTomlHint.Text = "tomlset 文件夹不存在，启动一次 frpc 后会自动创建";
+                return;
+            }
+
+            var files = Directory.GetFiles(tomlDir, "*.toml")
+                                 .OrderByDescending(File.GetLastWriteTime)
+                                 .ToList();
+
+            if (files.Count == 0)
+            {
+                TxtTomlHint.Text = "tomlset 文件夹为空，启动 frpc 后会自动生成配置文件";
+                TomlFilePanel.Children.Add(TxtTomlHint);
+                return;
+            }
+
+            foreach (var file in files)
+                TomlFilePanel.Children.Add(BuildTomlFileRow(file));
+        }
+
+        UIElement BuildTomlFileRow(string path)
+        {
+            var info = new FileInfo(path);
+            var modified = info.LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss");
+            var size = info.Length < 1024 ? $"{info.Length} B" : $"{info.Length / 1024.0:F1} KB";
+
+            var border = new Border
+            {
+                Background = new SolidColorBrush(Colors.White),
+                BorderBrush = new SolidColorBrush(Color.FromRgb(0xB8, 0xD8, 0xEE)),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(9),
+                Padding = new Thickness(16, 12, 16, 12),
+                Margin = new Thickness(0, 0, 0, 8)
+            };
+
+            var grid = new Grid();
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+            // 文件信息
+            var infoPanel = new StackPanel();
+            infoPanel.Children.Add(new TextBlock
+            {
+                Text = Path.GetFileName(path),
+                Foreground = new SolidColorBrush(Color.FromRgb(0x1A, 0x3A, 0x50)),
+                FontSize = 14,
+                FontWeight = FontWeights.SemiBold,
+                FontFamily = new FontFamily("Consolas")
+            });
+            infoPanel.Children.Add(new TextBlock
+            {
+                Text = $"修改时间：{modified}    大小：{size}",
+                Foreground = new SolidColorBrush(Color.FromRgb(0x5A, 0x7D, 0x95)),
+                FontSize = 11,
+                Margin = new Thickness(0, 3, 0, 0)
+            });
+            Grid.SetColumn(infoPanel, 0);
+
+            // 加载按钮
+            var btnLoad = new Button
+            {
+                Content = "📂 加载",
+                Style = (Style)FindResource("PrimaryBtn"),
+                Padding = new Thickness(14, 7, 14, 7),
+                Margin = new Thickness(10, 0, 0, 0),
+                Tag = path
+            };
+            btnLoad.Click += (s, e) => LoadTomlFile((string)((Button)s).Tag);
+            Grid.SetColumn(btnLoad, 1);
+
+            // 删除按钮
+            var btnDel = new Button
+            {
+                Content = "🗑 删除",
+                Style = (Style)FindResource("DangerBtn"),
+                Padding = new Thickness(12, 7, 12, 7),
+                Margin = new Thickness(8, 0, 0, 0),
+                Tag = path
+            };
+            btnDel.Click += (s, e) =>
+            {
+                var p = (string)((Button)s).Tag;
+                if (MessageBox.Show($"确认删除？\n{Path.GetFileName(p)}",
+                        "删除确认", MessageBoxButton.YesNo, MessageBoxImage.Warning)
+                    == MessageBoxResult.Yes)
+                {
+                    File.Delete(p);
+                    LoadTomlFileList();
+                    SetStatus($"已删除：{Path.GetFileName(p)}");
+                }
+            };
+            Grid.SetColumn(btnDel, 2);
+
+            grid.Children.Add(infoPanel);
+            grid.Children.Add(btnLoad);
+            grid.Children.Add(btnDel);
+            border.Child = grid;
+            return border;
+        }
+
+        void LoadTomlFile(string path)
+        {
+            // 复用已有的导入逻辑，直接调用 Btn_Open 的解析部分
+            // 把 path 传入解析流程即可
+            try
+            {
+                var text = File.ReadAllText(path);
+                var doc = Tomlyn.Toml.Parse(text);
+                if (doc.HasErrors)
+                {
+                    MessageBox.Show("TOML 格式错误，无法加载", "错误",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                var model = doc.ToModel();
+
+                _server.ServerAddr = model.TryGet("serverAddr") ?? _server.ServerAddr;
+                if (int.TryParse(model.TryGet("serverPort"), out int p)) _server.ServerPort = p;
+
+                if (model.TryGetValue("auth", out var authObj) && authObj is TomlTable auth)
+                {
+                    _server.AuthMethod = auth.TryGet("method") ?? "none";
+                    _server.Token = auth.TryGet("token") ?? "";
+                }
+
+                _proxies.Clear();
+                if (model.TryGetValue("proxies", out var proxiesObj) && proxiesObj is TomlTableArray proxies)
+                    foreach (TomlTable row in proxies)
+                        _proxies.Add(new ProxyConfig
+                        {
+                            Name = row.TryGet("name") ?? "",
+                            LocalIp = row.TryGet("localIP") ?? "127.0.0.1",
+                            LocalPort = int.TryParse(row.TryGet("localPort"), out int lp) ? lp : 80,
+                            RemotePort = int.TryParse(row.TryGet("remotePort"), out int rp) ? rp : 0,
+                            CustomDomains = row.TryGet("customDomains") ?? "",
+                            Subdomain = row.TryGet("subdomain") ?? "",
+                            Sk = row.TryGet("secretKey") ?? "",
+                            Type = Enum.TryParse<ProxyType>(row.TryGet("type"), out var pt)
+                                            ? pt : ProxyType.tcp,
+                        });
+
+                _visitors.Clear();
+                if (model.TryGetValue("visitors", out var visitorsObj) && visitorsObj is TomlTableArray visitors)
+                    foreach (TomlTable row in visitors)
+                        _visitors.Add(new VisitorConfig
+                        {
+                            Name = row.TryGet("name") ?? "",
+                            ServerName = row.TryGet("serverName") ?? "",
+                            ServerUser = row.TryGet("serverUser") ?? "",
+                            Sk = row.TryGet("secretKey") ?? "",
+                            BindAddr = row.TryGet("bindAddr") ?? "127.0.0.1",
+                            BindPort = int.TryParse(row.TryGet("bindPort"), out int bp) ? bp : 9000,
+                            Type = Enum.TryParse<ProxyType>(row.TryGet("type"), out var vt)
+                                         ? vt : ProxyType.stcp,
+                        });
+
+                LoadServerToUI();
+                UpdateCounts();
+                RefreshPreview();
+                ShowEditor(EditorMode.None);
+                SetStatus($"已加载：{Path.GetFileName(path)}");
+
+                // 切换回编辑器 Tab
+                MainTabs.SelectedItem = TabEditor;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"加载失败：\n{ex.Message}", "错误",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         // ══ FRP Path ══════════════════════════════════════════════════════
@@ -369,8 +564,8 @@ namespace FrpManager.Views
             ProxyEditorPanel.Visibility  = mode == EditorMode.Proxy   ? Visibility.Visible : Visibility.Collapsed;
             VisitorEditorPanel.Visibility= mode == EditorMode.Visitor  ? Visibility.Visible : Visibility.Collapsed;
             // Switch to editor tab
-            if (mode != EditorMode.None && MainTabs.SelectedIndex != 0)
-                MainTabs.SelectedIndex = 0;
+            if (mode != EditorMode.None && MainTabs.SelectedItem != TabEditor)
+                MainTabs.SelectedItem = TabEditor;
         }
 
         // ══ Templates ═════════════════════════════════════════════════════
@@ -516,7 +711,7 @@ namespace FrpManager.Views
                     "请先在「服务器配置」标签页中设置有效的 frpc 路径。\n\n" +
                     "可点击「浏览...」手动选择，或点击「🔍 自动扫描」自动查找。",
                     "未设置 frpc 路径", MessageBoxButton.OK, MessageBoxImage.Warning);
-                MainTabs.SelectedIndex = 1;
+                MainTabs.SelectedItem = TabServer;
                 return;
             }
 
@@ -580,7 +775,7 @@ namespace FrpManager.Views
             AppendTerminal($"─── 配置文件: {tmp} ───", BrushMuted);
 
             // Auto-switch to terminal tab
-            MainTabs.SelectedIndex = 3;
+            MainTabs.SelectedItem = TabTerminal;
         }
 
         void SetFrpRunning(bool on)

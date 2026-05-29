@@ -1,23 +1,28 @@
 {
   "version": 2,
-  "dgSpecHash": "uGHM4wFhlw4=",
+  "dgSpecHash": "22mUCW5WhmI=",
   "success": true,
-  "projectFilePath": "E:\\MyGitHubProject\\FrpManager\\FrpManager.csproj",
+  "projectFilePath": "G:\\FrpManager3\\FrpManager.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\Aries\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512",
-    "C:\\Users\\Aries\\.nuget\\packages\\tomlyn\\0.17.0\\tomlyn.0.17.0.nupkg.sha512"
+    "C:\\Users\\Alex\\.nuget\\packages\\microsoft.net.illink.tasks\\10.0.8\\microsoft.net.illink.tasks.10.0.8.nupkg.sha512",
+    "C:\\Users\\Alex\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512",
+    "C:\\Users\\Alex\\.nuget\\packages\\tomlyn\\0.17.0\\tomlyn.0.17.0.nupkg.sha512",
+    "C:\\Users\\Alex\\.nuget\\packages\\microsoft.netcore.app.runtime.win-x64\\10.0.8\\microsoft.netcore.app.runtime.win-x64.10.0.8.nupkg.sha512",
+    "C:\\Users\\Alex\\.nuget\\packages\\microsoft.windowsdesktop.app.runtime.win-x64\\10.0.8\\microsoft.windowsdesktop.app.runtime.win-x64.10.0.8.nupkg.sha512",
+    "C:\\Users\\Alex\\.nuget\\packages\\microsoft.aspnetcore.app.runtime.win-x64\\10.0.8\\microsoft.aspnetcore.app.runtime.win-x64.10.0.8.nupkg.sha512"
   ],
   "logs": [
     {
       "code": "NU1603",
       "level": "Warning",
       "message": "FrpManager 依赖于 Tomlyn (>= 0.16.3)，但没有找到 Tomlyn 0.16.3。已改为解析 Tomlyn 0.17.0。",
-      "projectPath": "E:\\MyGitHubProject\\FrpManager\\FrpManager.csproj",
+      "projectPath": "G:\\FrpManager3\\FrpManager.csproj",
       "warningLevel": 1,
-      "filePath": "E:\\MyGitHubProject\\FrpManager\\FrpManager.csproj",
+      "filePath": "G:\\FrpManager3\\FrpManager.csproj",
       "libraryId": "Tomlyn",
       "targetGraphs": [
-        "net10.0-windows7.0"
+        "net10.0-windows7.0",
+        "net10.0-windows7.0/win-x64"
       ]
     }
   ]

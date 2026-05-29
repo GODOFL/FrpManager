@@ -299,12 +299,24 @@ namespace FrpManager.Views
         void Btn_ScanFrpc(object s, RoutedEventArgs e)
         {
             SetStatus("正在扫描 frpc...");
+
+            // 优先检查 download 目录里的最新版本
+            var latest = DownloadHelper.FindLatestFrpc();
+            if (latest != null)
+            {
+                SetFrpcPath(latest);
+                SetStatus($"已自动读取最新版本：{Path.GetFileName(Path.GetDirectoryName(latest)!)}");
+                return;
+            }
+
+            // download 目录没有，再扫描系统路径
             var found = SettingsHelper.ScanForFrpc();
             if (found.Count == 0)
             {
                 SetStatus("未找到 frpc，请手动浏览指定路径");
                 MessageBox.Show(
-                    "自动扫描未找到 frpc 可执行文件。\n\n请手动点击「浏览...」选择 frpc.exe 的位置。",
+                    "自动扫描未找到 frpc 可执行文件。\n\n" +
+                    "可点击「浏览...」手动选择，或在「下载 FRP」标签页下载最新版本。",
                     "扫描结果", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
@@ -912,34 +924,68 @@ namespace FrpManager.Views
         async void Btn_DownloadAsset(object s, RoutedEventArgs e)
         {
             if (s is not Button b || b.Tag is not GitHubAsset asset) return;
-            var d = new SaveFileDialog { FileName = asset.name, Filter = "所有文件|*.*" };
-            if (d.ShowDialog() != true) return;
+
+            // 只处理 zip 文件
+            if (!asset.name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+            {
+                MessageBox.Show("目前仅支持自动处理 .zip 格式的压缩包。",
+                    "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            string version = DownloadHelper.ParseVersion(asset.name);
+            string savePath = Path.Combine(DownloadHelper.DownloadDir, asset.name);
+            Directory.CreateDirectory(DownloadHelper.DownloadDir);
+
             _dlCts?.Cancel();
             _dlCts = new CancellationTokenSource();
+
             ProgressPanel.Visibility = Visibility.Visible;
-            TxtDlFile.Text = $"下载中：{asset.name}";
+            TxtDlFile.Text = $"下载中：{asset.name}  →  download/";
             DlProgress.Value = 0;
+
             try
             {
-                var prog = new Progress<double>(pct => { DlProgress.Value = pct; TxtDlPct.Text = $"{pct:F1}%"; });
-                await GithubHelper.DownloadAsync(asset.browser_download_url, d.FileName, prog, _dlCts.Token);
-                TxtDlFile.Text = $"✅ 下载完成：{d.FileName}";
-                DlProgress.Value = 100;
-                SetStatus($"下载完成：{asset.name}");
-                // Offer to set as frpc path if it looks like frpc
-                if (asset.name.StartsWith("frpc", StringComparison.OrdinalIgnoreCase) &&
-                    asset.name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+                // ── 1. 下载 ──────────────────────────────────────────────────
+                var prog = new Progress<double>(pct =>
                 {
-                    if (MessageBox.Show($"是否将下载的 frpc 设为启动路径？\n{d.FileName}",
-                            "设置路径", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
-                        SetFrpcPath(d.FileName);
+                    DlProgress.Value = pct;
+                    TxtDlPct.Text = $"{pct:F1}%";
+                });
+                await GithubHelper.DownloadAsync(
+                    asset.browser_download_url, savePath, prog, _dlCts.Token);
+
+                TxtDlFile.Text = $"解压中：frp-{version} ...";
+                DlProgress.Value = 100;
+
+                // ── 2. 解压 + 重命名 + 删除压缩包 ────────────────────────────
+                string extractedDir = await Task.Run(
+                    () => DownloadHelper.ExtractAndCleanup(savePath, version));
+
+                TxtDlFile.Text = $"✅ 已完成：download/frp-{version}/";
+                SetStatus($"下载并解压完成：frp-{version}");
+
+                // ── 3. 自动设置 frpc 路径为刚下载的版本 ──────────────────────
+                string frpcExe = Path.Combine(extractedDir, "frpc.exe");
+                if (File.Exists(frpcExe))
+                {
+                    SetFrpcPath(frpcExe);
+                    AppendTerminal($"─── 已自动设置 frpc 路径：{frpcExe} ───", BrushSuccess);
                 }
             }
-            catch (OperationCanceledException) { ProgressPanel.Visibility = Visibility.Collapsed; }
+            catch (OperationCanceledException)
+            {
+                // 下载取消后清理未完成的文件
+                if (File.Exists(savePath)) File.Delete(savePath);
+                ProgressPanel.Visibility = Visibility.Collapsed;
+                SetStatus("下载已取消");
+            }
             catch (Exception ex)
             {
+                if (File.Exists(savePath)) File.Delete(savePath);
                 ProgressPanel.Visibility = Visibility.Collapsed;
-                MessageBox.Show($"下载失败：\n{ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"下载失败：\n{ex.Message}", "错误",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

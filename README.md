@@ -34,8 +34,6 @@ dotnet run
 
 ---
 
-## 打包发布（修复无法打开问题）
-
 ### 方式一：框架依赖（体积小，目标机需安装 .NET 10）
 ```bash
 dotnet publish -c Release -r win-x64

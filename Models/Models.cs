@@ -117,6 +117,7 @@ namespace FrpManager.Models
     // ── App Settings ─────────────────────────────────────────────────────
     public class AppSettings
     {
+        public string Language { get; set; } = "zh-CN"; // 新增
         public string       FrpcPath        { get; set; } = "";
         public List<string> RecentFrpcPaths { get; set; } = new();
     }

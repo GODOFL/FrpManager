@@ -6,6 +6,8 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Themes/SkyTheme.xaml"/>
+                <!-- Default language: Chinese. Switch at runtime via code. -->
+                <ResourceDictionary Source="Localization/Strings.zh-CN.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

@@ -1,0 +1,192 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+    <!-- App -->
+    <sys:String x:Key="S_AppSubtitle">Visual FRP Configurator</sys:String>
+    <sys:String x:Key="S_LangBtn">中文</sys:String>
+
+    <!-- Header toolbar -->
+    <sys:String x:Key="S_Open">Open</sys:String>
+    <sys:String x:Key="S_Save">Save</sys:String>
+    <sys:String x:Key="S_StartFrpc">Start frpc</sys:String>
+    <sys:String x:Key="S_StopFrpc">Stop frpc</sys:String>
+
+    <!-- Sidebar -->
+    <sys:String x:Key="S_ProxyRules">Proxy Rules</sys:String>
+    <sys:String x:Key="S_Add">Add</sys:String>
+    <sys:String x:Key="S_VisitorRules">Visitor Rules</sys:String>
+    <sys:String x:Key="S_ProxyTemplates">Proxy Templates</sys:String>
+    <sys:String x:Key="S_VisitorTemplates">Visitor Templates</sys:String>
+    <sys:String x:Key="S_TplTcp">🔌 TCP</sys:String>
+    <sys:String x:Key="S_TplSsh">🖥 SSH</sys:String>
+    <sys:String x:Key="S_TplRdp">🖱 RDP</sys:String>
+    <sys:String x:Key="S_TplHttp">🌐 HTTP</sys:String>
+    <sys:String x:Key="S_TplHttps">🔒 HTTPS</sys:String>
+    <sys:String x:Key="S_TplUdp">📡 UDP</sys:String>
+    <sys:String x:Key="S_TplMc">⛏ MC</sys:String>
+    <sys:String x:Key="S_TplStcp">🔐 STCP</sys:String>
+    <sys:String x:Key="S_TplVisitor">👁 STCP Visitor</sys:String>
+
+    <!-- Tab headers -->
+    <sys:String x:Key="S_TabEditor">⚙  Editor</sys:String>
+    <sys:String x:Key="S_TabServer">🖥  Server Config</sys:String>
+    <sys:String x:Key="S_TabPreview">📄  Config Preview</sys:String>
+    <sys:String x:Key="S_TabTerminal">🖥  Terminal</sys:String>
+    <sys:String x:Key="S_TabDownload">⬇  Download FRP</sys:String>
+    <sys:String x:Key="S_TabTomlLib">📁  Config Library</sys:String>
+
+    <!-- Empty state -->
+    <sys:String x:Key="S_EmptyState">Select a rule from the left, or click "+ Add"</sys:String>
+    <sys:String x:Key="S_EmptyStateBtn">+ New Proxy Rule</sys:String>
+
+    <!-- Proxy editor -->
+    <sys:String x:Key="S_BasicInfo">Basic Info</sys:String>
+    <sys:String x:Key="S_ProxyName">Proxy Name</sys:String>
+    <sys:String x:Key="S_ProxyNamePh">e.g. ssh-home</sys:String>
+    <sys:String x:Key="S_ProxyType">Proxy Type</sys:String>
+    <sys:String x:Key="S_LocalService">Local Service</sys:String>
+    <sys:String x:Key="S_LocalIpLabel">Local IP Address</sys:String>
+    <sys:String x:Key="S_LocalPortLabel">Local Port</sys:String>
+    <sys:String x:Key="S_RemotePortSection">Remote Port (TCP / UDP)</sys:String>
+    <sys:String x:Key="S_RemotePortLabel">Remote Port</sys:String>
+    <sys:String x:Key="S_RemotePortPh">8080</sys:String>
+    <sys:String x:Key="S_DomainSection">Domain Settings (HTTP / HTTPS)</sys:String>
+    <sys:String x:Key="S_CustomDomainsLabel">Custom Domains</sys:String>
+    <sys:String x:Key="S_CustomDomainsPh">example.com</sys:String>
+    <sys:String x:Key="S_SubdomainLabel">Subdomain (requires subdomain_host on server)</sys:String>
+    <sys:String x:Key="S_SubdomainPh">myapp</sys:String>
+    <sys:String x:Key="S_SecretSection">Secret Key (STCP / XTCP)</sys:String>
+    <sys:String x:Key="S_SecretKeyLabel">secretKey (optional, leave blank for no auth)</sys:String>
+    <sys:String x:Key="S_SecretKeyPh">Leave blank for no secret</sys:String>
+    <sys:String x:Key="S_TransportOptions">Transport Options</sys:String>
+    <sys:String x:Key="S_UseEncryption">Enable Encryption (useEncryption)</sys:String>
+    <sys:String x:Key="S_UseCompression">Enable Compression (useCompression)</sys:String>
+
+    <!-- Visitor editor -->
+    <sys:String x:Key="S_VisitorName">Visitor Name</sys:String>
+    <sys:String x:Key="S_VisitorNamePh">e.g. stcp-visitor</sys:String>
+    <sys:String x:Key="S_VisitorType">Visitor Type</sys:String>
+    <sys:String x:Key="S_ServerProxy">Server-side Proxy</sys:String>
+    <sys:String x:Key="S_ServerNameLabel">Proxy Name (serverName)</sys:String>
+    <sys:String x:Key="S_ServerNamePh">stcp-server</sys:String>
+    <sys:String x:Key="S_ServerUserLabel">Owner User (serverUser, optional)</sys:String>
+    <sys:String x:Key="S_ServerUserPh">Leave blank</sys:String>
+    <sys:String x:Key="S_LocalBind">Local Binding</sys:String>
+    <sys:String x:Key="S_BindAddrLabel">Bind Address (bindAddr)</sys:String>
+    <sys:String x:Key="S_BindPortLabel">Bind Port (bindPort)</sys:String>
+    <sys:String x:Key="S_BindPortPh">9000</sys:String>
+    <sys:String x:Key="S_SecretOptional">Secret Key (Optional)</sys:String>
+    <sys:String x:Key="S_SecretKeyDesc">secretKey — optional, must match the server-side proxy setting</sys:String>
+    <sys:String x:Key="S_SecretVisitorPh">Leave blank for no secret</sys:String>
+
+    <!-- Server config -->
+    <sys:String x:Key="S_ServerConfigTitle">Server Connection Config</sys:String>
+    <sys:String x:Key="S_FrpcPathSection">frpc Executable Path</sys:String>
+    <sys:String x:Key="S_Browse">Browse...</sys:String>
+    <sys:String x:Key="S_AutoScan">🔍 Auto Scan</sys:String>
+    <sys:String x:Key="S_FrpcPathHintEmpty">Path not set. Browse or click Auto Scan.</sys:String>
+    <sys:String x:Key="S_FrpcPathHintOk">✅ Path is valid</sys:String>
+    <sys:String x:Key="S_FrpcPathHintBad">⚠ File not found, please reselect</sys:String>
+    <sys:String x:Key="S_ConnectionParams">Connection Parameters</sys:String>
+    <sys:String x:Key="S_ServerAddrLabel">Server Address</sys:String>
+    <sys:String x:Key="S_ServerAddrPh">your-server.com or IP address</sys:String>
+    <sys:String x:Key="S_PortLabel">Port</sys:String>
+    <sys:String x:Key="S_AuthTokenLabel">Auth Token</sys:String>
+    <sys:String x:Key="S_AuthTokenPh">Must match the token in frps.toml</sys:String>
+    <sys:String x:Key="S_SecuritySection">Security &amp; Transport</sys:String>
+    <sys:String x:Key="S_AuthMethodLabel">Auth Method</sys:String>
+    <sys:String x:Key="S_AuthNone">none (no auth)</sys:String>
+    <sys:String x:Key="S_LogLevelLabel">Log Level</sys:String>
+    <sys:String x:Key="S_TlsEnableCheck">Enable TLS (transport.tls.enable)</sys:String>
+    <sys:String x:Key="S_LogFileSection">Log File</sys:String>
+    <sys:String x:Key="S_LogFilePh">./frpc.log (blank for console output)</sys:String>
+
+    <!-- Preview tab -->
+    <sys:String x:Key="S_PreviewTitle">frpc.toml Preview</sys:String>
+    <sys:String x:Key="S_Refresh">🔄 Refresh</sys:String>
+    <sys:String x:Key="S_CopyAll">📋 Copy</sys:String>
+    <sys:String x:Key="S_ExportFrpc">💾 Export frpc.toml</sys:String>
+    <sys:String x:Key="S_ExportFrps">📤 Export frps.toml</sys:String>
+
+    <!-- Terminal tab -->
+    <sys:String x:Key="S_FrpcNotRunning">frpc not running</sys:String>
+    <sys:String x:Key="S_Clear">Clear</sys:String>
+
+    <!-- Download tab -->
+    <sys:String x:Key="S_DownloadTitle">Download FRP Binaries from GitHub</sys:String>
+    <sys:String x:Key="S_DownloadHint">Click "Check Updates" to load the release list</sys:String>
+    <sys:String x:Key="S_CheckUpdate">🔍 Check Updates</sys:String>
+    <sys:String x:Key="S_OpenGithub">🌐 Open GitHub</sys:String>
+    <sys:String x:Key="S_AssetHint">Click "Check Updates" above to load the release list</sys:String>
+
+    <!-- Toml library tab -->
+    <sys:String x:Key="S_TomlLibTitle">tomlset Config Library</sys:String>
+    <sys:String x:Key="S_RefreshList">🔄 Refresh List</sys:String>
+    <sys:String x:Key="S_TomlHintEmpty">tomlset folder is empty. Launch frpc to generate a config.</sys:String>
+    <sys:String x:Key="S_TomlHintNoDir">tomlset folder not found. Launch frpc once to create it.</sys:String>
+    <sys:String x:Key="S_Load">📂 Load</sys:String>
+    <sys:String x:Key="S_Delete">🗑 Delete</sys:String>
+    <sys:String x:Key="S_ModifiedTime">Modified</sys:String>
+
+    <!-- Status bar -->
+    <sys:String x:Key="S_Ready">Ready</sys:String>
+    <sys:String x:Key="S_FrpcRunning">frpc running</sys:String>
+
+    <!-- MessageBox / dynamic strings -->
+    <sys:String x:Key="S_MsgTomlError">TOML format error, cannot load</sys:String>
+    <sys:String x:Key="S_MsgTomlErrorTitle">Error</sys:String>
+    <sys:String x:Key="S_MsgLoadFailed">Load failed: </sys:String>
+    <sys:String x:Key="S_MsgLoadFailedTitle">Error</sys:String>
+    <sys:String x:Key="S_MsgDeleteConfirm">Confirm delete?</sys:String>
+    <sys:String x:Key="S_MsgDeleteTitle">Confirm Delete</sys:String>
+    <sys:String x:Key="S_MsgNoFrpcPath">Please set a valid frpc path in the "Server Config" tab.&#x0a;&#x0a;Click "Browse..." to select manually, or "Auto Scan" to search.</sys:String>
+    <sys:String x:Key="S_MsgNoFrpcPathTitle">frpc Path Not Set</sys:String>
+    <sys:String x:Key="S_MsgValidateFail">Config has the following issues and launch was blocked:</sys:String>
+    <sys:String x:Key="S_MsgValidateTitle">Validation Failed</sys:String>
+    <sys:String x:Key="S_MsgScanNone">Auto scan did not find frpc.&#x0a;&#x0a;Please click "Browse..." to manually select frpc.exe.</sys:String>
+    <sys:String x:Key="S_MsgScanTitle">Scan Result</sys:String>
+    <sys:String x:Key="S_MsgSetFrpcPath">Set the downloaded frpc as the launch path?</sys:String>
+    <sys:String x:Key="S_MsgSetFrpcPathTitle">Set Path</sys:String>
+    <sys:String x:Key="S_MsgDownloadFail">Download failed: </sys:String>
+    <sys:String x:Key="S_MsgDownloadFailTitle">Error</sys:String>
+    <sys:String x:Key="S_StatusReady">Ready</sys:String>
+    <sys:String x:Key="S_StatusDeleted">Deleted: </sys:String>
+    <sys:String x:Key="S_StatusLoaded">Loaded: </sys:String>
+    <sys:String x:Key="S_StatusSaved">Exported: </sys:String>
+    <sys:String x:Key="S_StatusCopied">Config copied to clipboard</sys:String>
+    <sys:String x:Key="S_StatusScanDone">Scan complete, found </sys:String>
+    <sys:String x:Key="S_StatusScanUnit"> frpc executable(s)</sys:String>
+    <sys:String x:Key="S_StatusScanNone">frpc not found. Please browse manually.</sys:String>
+    <sys:String x:Key="S_StatusScanning">Scanning for frpc...</sys:String>
+    <sys:String x:Key="S_StatusScanLatest">Auto-selected latest version: </sys:String>
+    <sys:String x:Key="S_StatusUpdateDone">Release list loaded</sys:String>
+    <sys:String x:Key="S_StatusUpdateFail">Load failed</sys:String>
+    <sys:String x:Key="S_StatusDownloadDone">Download complete: </sys:String>
+    <sys:String x:Key="S_StatusConnecting">Connecting to GitHub...</sys:String>
+    <sys:String x:Key="S_StatusLoadingList">⏳ Loading release list, please wait...</sys:String>
+    <sys:String x:Key="S_StatusLoadFail">❌ Load failed: </sys:String>
+    <sys:String x:Key="S_StatusStopped">frpc stopped</sys:String>
+    <sys:String x:Key="S_StatusStarted">frpc started (PID </sys:String>
+    <sys:String x:Key="S_StatusExited">frpc process exited</sys:String>
+    <sys:String x:Key="S_TermStopped">─── frpc stopped ───</sys:String>
+    <sys:String x:Key="S_TermExited">─── frpc process exited (code </sys:String>
+    <sys:String x:Key="S_TermStarted">─── Starting frpc: </sys:String>
+    <sys:String x:Key="S_TermConfig">─── Config file: </sys:String>
+    <sys:String x:Key="S_TermAutoPath">─── Auto-set frpc path: </sys:String>
+    <sys:String x:Key="S_DownloadProgress">Downloading: </sys:String>
+    <sys:String x:Key="S_ExtractProgress">Extracting: frp-</sys:String>
+    <sys:String x:Key="S_ExtractDone">✅ Done: download/</sys:String>
+    <sys:String x:Key="S_ProxyCountFmt"> proxy rules</sys:String>
+    <sys:String x:Key="S_VisitorCountFmt"> visitor rules</sys:String>
+    <sys:String x:Key="S_AddedTemplate">Template added: </sys:String>
+    <sys:String x:Key="S_AddedVisitorTemplate">Visitor template added: </sys:String>
+    <sys:String x:Key="S_DeletedProxy">Proxy deleted: </sys:String>
+    <sys:String x:Key="S_DeletedVisitor">Visitor deleted: </sys:String>
+    <sys:String x:Key="S_Opened">Opened: </sys:String>
+    <sys:String x:Key="S_OpenedSuffix"> (full parsing coming soon)</sys:String>
+    <sys:String x:Key="S_ZipOnly">Only .zip archives are supported for auto-extraction.</sys:String>
+    <sys:String x:Key="S_ZipOnlyTitle">Notice</sys:String>
+    <sys:String x:Key="S_DownloadCancelled">Download cancelled</sys:String>
+    <sys:String x:Key="S_ExtractAndDone">Download and extraction complete: frp-</sys:String>
+    <sys:String x:Key="S_LoadedFile">Release list loaded, latest: </sys:String>
+</ResourceDictionary>

@@ -4,13 +4,11 @@
     <!-- App -->
     <sys:String x:Key="S_AppSubtitle">可视化 FRP 配置工具</sys:String>
     <sys:String x:Key="S_LangBtn">EN</sys:String>
-
-    <!-- Header toolbar -->
+    <!-- Header -->
     <sys:String x:Key="S_Open">打开</sys:String>
     <sys:String x:Key="S_Save">保存</sys:String>
     <sys:String x:Key="S_StartFrpc">启动 frpc</sys:String>
     <sys:String x:Key="S_StopFrpc">停止 frpc</sys:String>
-
     <!-- Sidebar -->
     <sys:String x:Key="S_ProxyRules">代理规则</sys:String>
     <sys:String x:Key="S_Add">添加</sys:String>
@@ -25,20 +23,23 @@
     <sys:String x:Key="S_TplUdp">📡 UDP</sys:String>
     <sys:String x:Key="S_TplMc">⛏ MC</sys:String>
     <sys:String x:Key="S_TplStcp">🔐 STCP</sys:String>
-    <sys:String x:Key="S_TplVisitor">👁 STCP访客</sys:String>
-
-    <!-- Tab headers -->
+    <sys:String x:Key="S_TplXtcp">🔀 XTCP</sys:String>
+    <sys:String x:Key="S_TplSudp">📡 SUDP</sys:String>
+    <sys:String x:Key="S_TplStcpVisitor">👁 STCP访客</sys:String>
+    <sys:String x:Key="S_TplXtcpVisitor">👁 XTCP访客</sys:String>
+    <sys:String x:Key="S_TplXtcpFallback">🔄 XTCP+回退</sys:String>
+    <sys:String x:Key="S_TplStcpFallback">🪜 STCP回退</sys:String>
+    <sys:String x:Key="S_TplSudpVisitor">📡 SUDP访客</sys:String>
+    <!-- Tabs -->
     <sys:String x:Key="S_TabEditor">⚙  编辑器</sys:String>
     <sys:String x:Key="S_TabServer">🖥  服务器配置</sys:String>
     <sys:String x:Key="S_TabPreview">📄  配置预览</sys:String>
     <sys:String x:Key="S_TabTerminal">🖥  终端</sys:String>
-    <sys:String x:Key="S_TabDownload">⬇  下载 FRP</sys:String>
     <sys:String x:Key="S_TabTomlLib">📁  配置文件库</sys:String>
-
+    <sys:String x:Key="S_TabDownload">⬇  下载 FRP</sys:String>
     <!-- Empty state -->
     <sys:String x:Key="S_EmptyState">从左侧选择规则，或点击"+ 添加"新建</sys:String>
     <sys:String x:Key="S_EmptyStateBtn">+ 新建代理规则</sys:String>
-
     <!-- Proxy editor -->
     <sys:String x:Key="S_BasicInfo">基本信息</sys:String>
     <sys:String x:Key="S_ProxyName">代理名称</sys:String>
@@ -55,13 +56,12 @@
     <sys:String x:Key="S_CustomDomainsPh">example.com</sys:String>
     <sys:String x:Key="S_SubdomainLabel">子域名（需服务端配置 subdomain_host）</sys:String>
     <sys:String x:Key="S_SubdomainPh">myapp</sys:String>
-    <sys:String x:Key="S_SecretSection">密钥设置（STCP / XTCP）</sys:String>
+    <sys:String x:Key="S_SecretSection">密钥设置（STCP / XTCP / SUDP）</sys:String>
     <sys:String x:Key="S_SecretKeyLabel">密钥 secretKey（可选，留空表示不使用密钥验证）</sys:String>
     <sys:String x:Key="S_SecretKeyPh">留空则不使用密钥</sys:String>
     <sys:String x:Key="S_TransportOptions">传输选项</sys:String>
     <sys:String x:Key="S_UseEncryption">启用加密 (useEncryption)</sys:String>
     <sys:String x:Key="S_UseCompression">启用压缩 (useCompression)</sys:String>
-
     <!-- Visitor editor -->
     <sys:String x:Key="S_VisitorName">访客名称</sys:String>
     <sys:String x:Key="S_VisitorNamePh">例：stcp-visitor</sys:String>
@@ -73,12 +73,19 @@
     <sys:String x:Key="S_ServerUserPh">留空</sys:String>
     <sys:String x:Key="S_LocalBind">本地绑定</sys:String>
     <sys:String x:Key="S_BindAddrLabel">绑定地址 (bindAddr)</sys:String>
-    <sys:String x:Key="S_BindPortLabel">绑定端口 (bindPort)</sys:String>
+    <sys:String x:Key="S_BindPortLabel">绑定端口 (bindPort，-1 表示仅接受 fallback)</sys:String>
     <sys:String x:Key="S_BindPortPh">9000</sys:String>
     <sys:String x:Key="S_SecretOptional">密钥（可选）</sys:String>
     <sys:String x:Key="S_SecretKeyDesc">secretKey — 留空则不使用密钥验证，需与服务端代理设置一致</sys:String>
     <sys:String x:Key="S_SecretVisitorPh">留空则不使用密钥</sys:String>
-
+    <!-- XTCP card -->
+    <sys:String x:Key="S_XtcpSection">XTCP P2P 设置</sys:String>
+    <sys:String x:Key="S_KeepTunnelOpen">保持隧道常开 (keepTunnelOpen)</sys:String>
+    <sys:String x:Key="S_FallbackSection">Fallback 降级（打洞失败时回退到 STCP）</sys:String>
+    <sys:String x:Key="S_FallbackToLabel">Fallback 目标 visitor 名称 (fallbackTo)</sys:String>
+    <sys:String x:Key="S_FallbackToPh">stcp-fallback（留空不启用）</sys:String>
+    <sys:String x:Key="S_FallbackTimeoutLabel">超时时间 ms (fallbackTimeoutMs)</sys:String>
+    <sys:String x:Key="S_FallbackTimeoutPh">200</sys:String>
     <!-- Server config -->
     <sys:String x:Key="S_ServerConfigTitle">服务器连接配置</sys:String>
     <sys:String x:Key="S_FrpcPathSection">frpc 可执行文件路径</sys:String>
@@ -98,28 +105,27 @@
     <sys:String x:Key="S_AuthNone">none（不认证）</sys:String>
     <sys:String x:Key="S_LogLevelLabel">日志级别</sys:String>
     <sys:String x:Key="S_TlsEnableCheck">启用 TLS 加密传输 (transport.tls.enable)</sys:String>
+    <sys:String x:Key="S_StunSection">XTCP STUN 服务器（可选）</sys:String>
+    <sys:String x:Key="S_StunDesc">natHoleStunServer — 默认使用 frp 内置，打洞失败时可换用其他</sys:String>
+    <sys:String x:Key="S_StunPh">stun.easyvoip.com:3478（留空使用默认）</sys:String>
     <sys:String x:Key="S_LogFileSection">日志文件</sys:String>
     <sys:String x:Key="S_LogFilePh">./frpc.log（留空则输出到终端）</sys:String>
-
-    <!-- Preview tab -->
+    <!-- Preview -->
     <sys:String x:Key="S_PreviewTitle">frpc.toml 预览</sys:String>
     <sys:String x:Key="S_Refresh">🔄 刷新</sys:String>
     <sys:String x:Key="S_CopyAll">📋 复制</sys:String>
     <sys:String x:Key="S_ExportFrpc">💾 导出 frpc.toml</sys:String>
     <sys:String x:Key="S_ExportFrps">📤 导出 frps.toml</sys:String>
-
-    <!-- Terminal tab -->
+    <!-- Terminal -->
     <sys:String x:Key="S_FrpcNotRunning">frpc 未运行</sys:String>
     <sys:String x:Key="S_Clear">清空</sys:String>
-
-    <!-- Download tab -->
+    <!-- Download -->
     <sys:String x:Key="S_DownloadTitle">从 GitHub 下载 FRP 二进制包</sys:String>
     <sys:String x:Key="S_DownloadHint">点击「检查更新」加载版本列表</sys:String>
     <sys:String x:Key="S_CheckUpdate">🔍 检查更新</sys:String>
     <sys:String x:Key="S_OpenGithub">🌐 打开 GitHub</sys:String>
     <sys:String x:Key="S_AssetHint">请点击上方「检查更新」按钮加载发布列表</sys:String>
-
-    <!-- Toml library tab -->
+    <!-- Config library -->
     <sys:String x:Key="S_TomlLibTitle">tomlset 配置文件库</sys:String>
     <sys:String x:Key="S_RefreshList">🔄 刷新列表</sys:String>
     <sys:String x:Key="S_TomlHintEmpty">tomlset 文件夹为空，启动 frpc 后会自动生成配置文件</sys:String>
@@ -127,12 +133,10 @@
     <sys:String x:Key="S_Load">📂 加载</sys:String>
     <sys:String x:Key="S_Delete">🗑 删除</sys:String>
     <sys:String x:Key="S_ModifiedTime">修改时间</sys:String>
-
     <!-- Status bar -->
     <sys:String x:Key="S_Ready">就绪</sys:String>
     <sys:String x:Key="S_FrpcRunning">frpc 运行中</sys:String>
-
-    <!-- MessageBox / dynamic strings -->
+    <!-- Dynamic / MessageBox strings -->
     <sys:String x:Key="S_MsgTomlError">TOML 格式错误，无法加载</sys:String>
     <sys:String x:Key="S_MsgTomlErrorTitle">错误</sys:String>
     <sys:String x:Key="S_MsgLoadFailed">加载失败：</sys:String>
@@ -145,8 +149,6 @@
     <sys:String x:Key="S_MsgValidateTitle">配置校验失败</sys:String>
     <sys:String x:Key="S_MsgScanNone">自动扫描未找到 frpc 可执行文件。&#x0a;&#x0a;请手动点击「浏览...」选择 frpc.exe 的位置。</sys:String>
     <sys:String x:Key="S_MsgScanTitle">扫描结果</sys:String>
-    <sys:String x:Key="S_MsgSetFrpcPath">是否将下载的 frpc 设为启动路径？</sys:String>
-    <sys:String x:Key="S_MsgSetFrpcPathTitle">设置路径</sys:String>
     <sys:String x:Key="S_MsgDownloadFail">下载失败：</sys:String>
     <sys:String x:Key="S_MsgDownloadFailTitle">错误</sys:String>
     <sys:String x:Key="S_StatusReady">就绪</sys:String>
@@ -166,15 +168,15 @@
     <sys:String x:Key="S_StatusLoadingList">⏳ 正在加载版本列表，请稍候...</sys:String>
     <sys:String x:Key="S_StatusLoadFail">❌ 加载失败：</sys:String>
     <sys:String x:Key="S_StatusStopped">frpc 已停止</sys:String>
-    <sys:String x:Key="S_StatusStarted">frpc 已启动（PID </sys:String>
+    <sys:String x:Key="S_StatusStarted">frpc 已启动（PID</sys:String>
     <sys:String x:Key="S_StatusExited">frpc 进程已退出</sys:String>
     <sys:String x:Key="S_TermStopped">─── frpc 已停止 ───</sys:String>
-    <sys:String x:Key="S_TermExited">─── frpc 进程退出（代码 </sys:String>
-    <sys:String x:Key="S_TermStarted">─── 启动 frpc: </sys:String>
-    <sys:String x:Key="S_TermConfig">─── 配置文件: </sys:String>
+    <sys:String x:Key="S_TermExited">─── frpc 进程退出（代码</sys:String>
+    <sys:String x:Key="S_TermStarted">─── 启动 frpc:</sys:String>
+    <sys:String x:Key="S_TermConfig">─── 配置文件:</sys:String>
     <sys:String x:Key="S_TermAutoPath">─── 已自动设置 frpc 路径：</sys:String>
     <sys:String x:Key="S_DownloadProgress">下载中：</sys:String>
-    <sys:String x:Key="S_ExtractProgress">解压中：</sys:String>
+    <sys:String x:Key="S_ExtractProgress">解压中：frp-</sys:String>
     <sys:String x:Key="S_ExtractDone">✅ 已完成：download/</sys:String>
     <sys:String x:Key="S_ProxyCountFmt">条代理</sys:String>
     <sys:String x:Key="S_VisitorCountFmt">条访客</sys:String>
@@ -189,4 +191,8 @@
     <sys:String x:Key="S_DownloadCancelled">下载已取消</sys:String>
     <sys:String x:Key="S_ExtractAndDone">下载并解压完成：frp-</sys:String>
     <sys:String x:Key="S_LoadedFile">已加载版本列表，最新：</sys:String>
+    <sys:String x:Key="S_SyncSecretKey">🔗 同步代理密钥</sys:String>
+    <sys:String x:Key="S_SyncSecretKeyTitle">提示</sys:String>
+    <sys:String x:Key="S_SyncSelectFirst">请先从下拉框选择一个代理</sys:String>
+    <sys:String x:Key="S_SyncNoSecret">该代理未设置 secretKey</sys:String>
 </ResourceDictionary>

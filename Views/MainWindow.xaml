@@ -22,30 +22,24 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <!-- Logo -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                     <Border Width="32" Height="32" CornerRadius="8"
                             Background="{StaticResource AccentBrush}" Margin="0,0,10,0">
-                        <TextBlock Text="F" Foreground="White" FontSize="18"
-                                   FontWeight="Bold" FontFamily="Segoe UI Black"
+                        <TextBlock Text="F" Foreground="White" FontSize="18" FontWeight="Bold"
+                                   FontFamily="Segoe UI Black"
                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="FrpManager"
-                                   Foreground="{StaticResource TextPrimaryBrush}"
+                        <TextBlock Text="FrpManager" Foreground="{StaticResource TextPrimaryBrush}"
                                    FontSize="16" FontWeight="Bold"/>
                         <TextBlock Text="{DynamicResource S_AppSubtitle}"
-                                   Foreground="{StaticResource TextSecondaryBrush}"
-                                   FontSize="11"/>
+                                   Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"/>
                     </StackPanel>
                 </StackPanel>
-                <!-- Toolbar -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                    <!-- Language toggle -->
                     <Button x:Name="BtnLang" Style="{StaticResource SecondaryBtn}"
                             Content="{DynamicResource S_LangBtn}"
-                            Click="Btn_ToggleLang" Margin="0,0,12,0"
-                            FontFamily="Segoe UI Semibold"/>
+                            Click="Btn_ToggleLang" Margin="0,0,12,0" FontFamily="Segoe UI Semibold"/>
                     <Button Style="{StaticResource SecondaryBtn}" Click="Btn_Open" Margin="0,0,8,0">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="📂" Margin="0,0,5,0"/>
@@ -71,7 +65,7 @@
         <!-- ══ Body ═════════════════════════════════════════════════════════ -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="290" MinWidth="220" MaxWidth="360"/>
+                <ColumnDefinition Width="290" MinWidth="220" MaxWidth="380"/>
                 <ColumnDefinition Width="4"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
@@ -84,7 +78,7 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*" MinHeight="70"/>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="0.55*" MinHeight="55"/>
+                        <RowDefinition Height="0.5*" MinHeight="55"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
@@ -101,8 +95,7 @@
                                            FontSize="13" FontWeight="SemiBold"/>
                                 <TextBlock x:Name="TxtProxyCount"
                                            Foreground="{StaticResource TextMutedBrush}"
-                                           FontSize="11" Margin="6,0,0,0"
-                                           VerticalAlignment="Center"/>
+                                           FontSize="11" Margin="6,0,0,0" VerticalAlignment="Center"/>
                             </StackPanel>
                             <Button Grid.Column="1" Style="{StaticResource PrimaryBtn}"
                                     Padding="9,5" Click="Btn_AddProxy">
@@ -116,8 +109,8 @@
 
                     <!-- Proxy list -->
                     <ListBox Grid.Row="1" x:Name="ProxyList"
-                             Background="Transparent" BorderThickness="0"
-                             Padding="8,0" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             Background="Transparent" BorderThickness="0" Padding="8,0"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                              ItemContainerStyle="{StaticResource ProxyListItem}"
                              SelectionChanged="ProxyList_Changed">
                         <ListBox.ItemTemplate>
@@ -129,12 +122,10 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <Border Grid.Column="0" CornerRadius="5" Padding="5,2"
-                                            Margin="0,0,8,0"
-                                            Background="{StaticResource AccentLightBrush}">
+                                            Margin="0,0,8,0" Background="{StaticResource AccentLightBrush}">
                                         <TextBlock Text="{Binding TypeLabel}"
                                                    Foreground="{StaticResource AccentDarkBrush}"
-                                                   FontSize="10" FontWeight="Bold"
-                                                   FontFamily="Consolas"/>
+                                                   FontSize="10" FontWeight="Bold" FontFamily="Consolas"/>
                                     </Border>
                                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                         <TextBlock Text="{Binding Name}"
@@ -164,8 +155,7 @@
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <Border CornerRadius="4" Padding="5,1" Margin="0,0,6,0"
                                         Background="{StaticResource AccentTealLightBrush}">
-                                    <TextBlock Text="vis"
-                                               Foreground="{StaticResource AccentTealBrush}"
+                                    <TextBlock Text="vis" Foreground="{StaticResource AccentTealBrush}"
                                                FontSize="10" FontWeight="Bold" FontFamily="Consolas"/>
                                 </Border>
                                 <TextBlock Text="{DynamicResource S_VisitorRules}"
@@ -173,8 +163,7 @@
                                            FontSize="13" FontWeight="SemiBold"/>
                                 <TextBlock x:Name="TxtVisitorCount"
                                            Foreground="{StaticResource TextMutedBrush}"
-                                           FontSize="11" Margin="6,0,0,0"
-                                           VerticalAlignment="Center"/>
+                                           FontSize="11" Margin="6,0,0,0" VerticalAlignment="Center"/>
                             </StackPanel>
                             <Button Grid.Column="1" Style="{StaticResource PrimaryBtn}"
                                     Padding="9,5" Click="Btn_AddVisitor"
@@ -189,8 +178,8 @@
 
                     <!-- Visitor list -->
                     <ListBox Grid.Row="3" x:Name="VisitorList"
-                             Background="Transparent" BorderThickness="0"
-                             Padding="8,0" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             Background="Transparent" BorderThickness="0" Padding="8,0"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                              ItemContainerStyle="{StaticResource VisitorListItem}"
                              SelectionChanged="VisitorList_Changed">
                         <ListBox.ItemTemplate>
@@ -202,12 +191,10 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <Border Grid.Column="0" CornerRadius="5" Padding="5,2"
-                                            Margin="0,0,8,0"
-                                            Background="{StaticResource AccentTealLightBrush}">
+                                            Margin="0,0,8,0" Background="{StaticResource AccentTealLightBrush}">
                                         <TextBlock Text="{Binding TypeLabel}"
                                                    Foreground="{StaticResource AccentTealBrush}"
-                                                   FontSize="10" FontWeight="Bold"
-                                                   FontFamily="Consolas"/>
+                                                   FontSize="10" FontWeight="Bold" FontFamily="Consolas"/>
                                     </Border>
                                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                         <TextBlock Text="{Binding Name}"
@@ -242,12 +229,18 @@
                                 <Button Style="{StaticResource IconBtn}" Content="{DynamicResource S_TplUdp}"   Click="T_Udp"   Margin="0,0,4,3"/>
                                 <Button Style="{StaticResource IconBtn}" Content="{DynamicResource S_TplMc}"    Click="T_Mc"    Margin="0,0,4,3"/>
                                 <Button Style="{StaticResource IconBtn}" Content="{DynamicResource S_TplStcp}"  Click="T_Stcp"  Margin="0,0,4,3"/>
+                                <Button Style="{StaticResource IconBtn}" Content="{DynamicResource S_TplXtcp}"  Click="T_Xtcp"  Margin="0,0,4,3"/>
+                                <Button Style="{StaticResource IconBtn}" Content="{DynamicResource S_TplSudp}"  Click="T_Sudp"  Margin="0,0,4,3"/>
                             </WrapPanel>
                             <TextBlock Text="{DynamicResource S_VisitorTemplates}"
                                        Foreground="{StaticResource TextMutedBrush}"
                                        FontSize="10" FontWeight="SemiBold" Margin="0,0,0,5"/>
                             <WrapPanel>
-                                <Button Style="{StaticResource TealIconBtn}" Content="{DynamicResource S_TplVisitor}" Click="T_Visitor"/>
+                                <Button Style="{StaticResource TealIconBtn}" Content="{DynamicResource S_TplStcpVisitor}"  Click="T_StcpVisitor"         Margin="0,0,4,3"/>
+                                <Button Style="{StaticResource TealIconBtn}" Content="{DynamicResource S_TplXtcpVisitor}"  Click="T_XtcpVisitor"         Margin="0,0,4,3"/>
+                                <Button Style="{StaticResource TealIconBtn}" Content="{DynamicResource S_TplXtcpFallback}" Click="T_XtcpWithFallback"    Margin="0,0,4,3"/>
+                                <Button Style="{StaticResource TealIconBtn}" Content="{DynamicResource S_TplStcpFallback}" Click="T_XtcpFallbackVisitor" Margin="0,0,4,3"/>
+                                <Button Style="{StaticResource TealIconBtn}" Content="{DynamicResource S_TplSudpVisitor}"  Click="T_SudpVisitor"         Margin="0,0,4,3"/>
                             </WrapPanel>
                         </StackPanel>
                     </Border>
@@ -259,8 +252,7 @@
                           Background="{StaticResource BorderBrush}" Cursor="SizeWE"/>
 
             <!-- ── Right tabs ─────────────────────────────────────────────── -->
-            <TabControl Grid.Column="2" x:Name="MainTabs"
-                        Style="{StaticResource SkyTabControl}">
+            <TabControl Grid.Column="2" x:Name="MainTabs" Style="{StaticResource SkyTabControl}">
 
                 <!-- Tab Config library -->
                 <TabItem x:Name="TabTomlLib" Header="{DynamicResource S_TabTomlLib}"
@@ -307,8 +299,7 @@
                          Style="{StaticResource SkyTabItem}">
                     <Grid Background="{StaticResource BgMainBrush}">
                         <!-- Empty state -->
-                        <StackPanel x:Name="EmptyState"
-                                    VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <StackPanel x:Name="EmptyState" VerticalAlignment="Center" HorizontalAlignment="Center">
                             <TextBlock Text="🔌" FontSize="52" HorizontalAlignment="Center" Margin="0,0,0,14"/>
                             <TextBlock Text="{DynamicResource S_EmptyState}"
                                        Foreground="{StaticResource TextSecondaryBrush}"
@@ -318,7 +309,7 @@
                         <!-- Proxy editor -->
                         <ScrollViewer x:Name="ProxyEditorPanel" Visibility="Collapsed"
                                       VerticalScrollBarVisibility="Auto" Margin="28,20,28,12">
-                            <StackPanel MaxWidth="620">
+                            <StackPanel MaxWidth="640">
                                 <TextBlock x:Name="TxtProxyTitle"
                                            Foreground="{StaticResource TextPrimaryBrush}"
                                            FontSize="20" FontWeight="Bold" Margin="0,0,0,20"/>
@@ -348,6 +339,7 @@
                                                     <ComboBoxItem Content="https"/>
                                                     <ComboBoxItem Content="stcp"/>
                                                     <ComboBoxItem Content="xtcp"/>
+                                                    <ComboBoxItem Content="sudp"/>
                                                 </ComboBox>
                                             </StackPanel>
                                         </Grid>
@@ -400,7 +392,7 @@
                                                  TextChanged="Proxy_FieldChanged"/>
                                     </StackPanel>
                                 </Border>
-                                <!-- STCP/XTCP secret key -->
+                                <!-- STCP/XTCP/SUDP secret -->
                                 <Border x:Name="CardSecret" Style="{StaticResource Card}" Visibility="Collapsed">
                                     <StackPanel>
                                         <TextBlock Text="{DynamicResource S_SecretSection}" Style="{StaticResource SectionLabel}"/>
@@ -431,13 +423,12 @@
                         <!-- Visitor [vis] editor -->
                         <ScrollViewer x:Name="VisitorEditorPanel" Visibility="Collapsed"
                                       VerticalScrollBarVisibility="Auto" Margin="28,20,28,12">
-                            <StackPanel MaxWidth="620">
+                            <StackPanel MaxWidth="640">
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
                                     <Border CornerRadius="6" Padding="8,3" Margin="0,0,10,0"
                                             Background="{StaticResource AccentTealLightBrush}"
                                             VerticalAlignment="Center">
-                                        <TextBlock Text="[vis]"
-                                                   Foreground="{StaticResource AccentTealBrush}"
+                                        <TextBlock Text="[vis]" Foreground="{StaticResource AccentTealBrush}"
                                                    FontSize="13" FontWeight="Bold" FontFamily="Consolas"/>
                                     </Border>
                                     <TextBlock x:Name="TxtVisitorTitle"
@@ -466,6 +457,7 @@
                                                           SelectionChanged="Visitor_TypeChanged">
                                                     <ComboBoxItem Content="stcp" IsSelected="True"/>
                                                     <ComboBoxItem Content="xtcp"/>
+                                                    <ComboBoxItem Content="sudp"/>
                                                 </ComboBox>
                                             </StackPanel>
                                         </Grid>
@@ -520,7 +512,7 @@
                                         </Grid>
                                     </StackPanel>
                                 </Border>
-                                <!-- Visitor secret -->
+                                <!-- Visitor secret key -->
                                 <Border Style="{StaticResource Card}">
                                     <StackPanel>
                                         <TextBlock Text="{DynamicResource S_SecretOptional}" Style="{StaticResource SectionLabel}"/>
@@ -528,6 +520,38 @@
                                         <TextBox x:Name="V_Sk" Style="{StaticResource SkyTextBox}"
                                                  Tag="{DynamicResource S_SecretVisitorPh}"
                                                  TextChanged="Visitor_FieldChanged"/>
+                                    </StackPanel>
+                                </Border>
+                                <!-- XTCP P2P card (only visible for xtcp type) -->
+                                <Border x:Name="CardXtcp" Style="{StaticResource Card}" Visibility="Collapsed">
+                                    <StackPanel>
+                                        <TextBlock Text="{DynamicResource S_XtcpSection}"
+                                                   Style="{StaticResource SectionLabel}"/>
+                                        <CheckBox x:Name="V_KeepTunnelOpen" Style="{StaticResource SkyCheckBox}"
+                                                  Content="{DynamicResource S_KeepTunnelOpen}"
+                                                  Margin="0,0,0,16"
+                                                  Checked="Visitor_CheckChanged" Unchecked="Visitor_CheckChanged"/>
+                                        <TextBlock Text="{DynamicResource S_FallbackSection}"
+                                                   Style="{StaticResource SectionLabel}"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="16"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="{DynamicResource S_FallbackToLabel}" Style="{StaticResource FieldLabel}"/>
+                                                <TextBox x:Name="V_FallbackTo" Style="{StaticResource SkyTextBox}"
+                                                         Tag="{DynamicResource S_FallbackToPh}"
+                                                         TextChanged="Visitor_FieldChanged"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="2">
+                                                <TextBlock Text="{DynamicResource S_FallbackTimeoutLabel}" Style="{StaticResource FieldLabel}"/>
+                                                <TextBox x:Name="V_FallbackTimeoutMs" Style="{StaticResource SkyTextBox}"
+                                                         Tag="{DynamicResource S_FallbackTimeoutPh}"
+                                                         TextChanged="Visitor_FieldChanged"/>
+                                            </StackPanel>
+                                        </Grid>
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
@@ -540,7 +564,7 @@
                          Style="{StaticResource SkyTabItem}">
                     <ScrollViewer Background="{StaticResource BgMainBrush}"
                                   VerticalScrollBarVisibility="Auto">
-                        <StackPanel Margin="28,20,28,12" MaxWidth="620">
+                        <StackPanel Margin="28,20,28,12" MaxWidth="640">
                             <TextBlock Text="{DynamicResource S_ServerConfigTitle}"
                                        Foreground="{StaticResource TextPrimaryBrush}"
                                        FontSize="20" FontWeight="Bold" Margin="0,0,0,20"/>
@@ -642,6 +666,16 @@
                                               Checked="Server_CheckChanged" Unchecked="Server_CheckChanged"/>
                                 </StackPanel>
                             </Border>
+                            <!-- STUN server (for XTCP) -->
+                            <Border Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <TextBlock Text="{DynamicResource S_StunSection}" Style="{StaticResource SectionLabel}"/>
+                                    <TextBlock Text="{DynamicResource S_StunDesc}" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox x:Name="S_StunServer" Style="{StaticResource SkyTextBox}"
+                                             Tag="{DynamicResource S_StunPh}"
+                                             TextChanged="Server_FieldChanged"/>
+                                </StackPanel>
+                            </Border>
                             <!-- Log file -->
                             <Border Style="{StaticResource Card}">
                                 <StackPanel>
@@ -656,8 +690,7 @@
                                                  Tag="{DynamicResource S_LogFilePh}"
                                                  TextChanged="Server_FieldChanged"/>
                                         <Button Grid.Column="2" Style="{StaticResource SecondaryBtn}"
-                                                Content="{DynamicResource S_Browse}"
-                                                Click="Btn_BrowseLog"/>
+                                                Content="{DynamicResource S_Browse}" Click="Btn_BrowseLog"/>
                                     </Grid>
                                 </StackPanel>
                             </Border>
@@ -665,7 +698,7 @@
                     </ScrollViewer>
                 </TabItem>
 
-                <!-- Tab Config preview -->
+                <!-- Tab 3: Config preview -->
                 <TabItem x:Name="TabPreview" Header="{DynamicResource S_TabPreview}"
                          Style="{StaticResource SkyTabItem}">
                     <Grid Background="{StaticResource BgMainBrush}">
@@ -717,8 +750,7 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Ellipse x:Name="TermDot" Width="9" Height="9"
-                                             Fill="#555" Margin="0,0,8,0"/>
+                                    <Ellipse x:Name="TermDot" Width="9" Height="9" Fill="#555" Margin="0,0,8,0"/>
                                     <TextBlock x:Name="TxtTermStatus"
                                                Text="{DynamicResource S_FrpcNotRunning}"
                                                Foreground="#5A8AAA" FontSize="12" FontFamily="Consolas"/>

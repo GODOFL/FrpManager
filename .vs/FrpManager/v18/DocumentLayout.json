@@ -7,12 +7,28 @@
       "RelativeMoniker": "D:0:0:{42DC2D9B-CBB1-07F4-87DB-C1D2972A814B}|FrpManager.csproj|solutionrelative:views\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{42DC2D9B-CBB1-07F4-87DB-C1D2972A814B}|FrpManager.csproj|e:\\mygithubproject\\frpmanager\\helpers\\downloadhelper.cs.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{42DC2D9B-CBB1-07F4-87DB-C1D2972A814B}|FrpManager.csproj|solutionrelative:helpers\\downloadhelper.cs.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{42DC2D9B-CBB1-07F4-87DB-C1D2972A814B}|FrpManager.csproj|e:\\mygithubproject\\frpmanager\\localization\\strings.en-us.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{42DC2D9B-CBB1-07F4-87DB-C1D2972A814B}|FrpManager.csproj|solutionrelative:localization\\strings.en-us.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{42DC2D9B-CBB1-07F4-87DB-C1D2972A814B}|FrpManager.csproj|e:\\mygithubproject\\frpmanager\\views\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{42DC2D9B-CBB1-07F4-87DB-C1D2972A814B}|FrpManager.csproj|solutionrelative:views\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{42DC2D9B-CBB1-07F4-87DB-C1D2972A814B}|FrpManager.csproj|e:\\mygithubproject\\frpmanager\\helpers\\confighelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{42DC2D9B-CBB1-07F4-87DB-C1D2972A814B}|FrpManager.csproj|solutionrelative:helpers\\confighelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{42DC2D9B-CBB1-07F4-87DB-C1D2972A814B}|FrpManager.csproj|e:\\mygithubproject\\frpmanager\\models\\models.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{42DC2D9B-CBB1-07F4-87DB-C1D2972A814B}|FrpManager.csproj|solutionrelative:models\\models.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{42DC2D9B-CBB1-07F4-87DB-C1D2972A814B}|FrpManager.csproj|e:\\mygithubproject\\frpmanager\\localization\\strings.zh-cn.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{42DC2D9B-CBB1-07F4-87DB-C1D2972A814B}|FrpManager.csproj|solutionrelative:localization\\strings.zh-cn.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{42DC2D9B-CBB1-07F4-87DB-C1D2972A814B}|FrpManager.csproj|e:\\mygithubproject\\frpmanager\\helpers\\downloadhelper.cs.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{42DC2D9B-CBB1-07F4-87DB-C1D2972A814B}|FrpManager.csproj|solutionrelative:helpers\\downloadhelper.cs.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|E:\\MyGitHubProject\\FrpManager\\obj\\Debug\\net10.0-windows\\Views\\MainWindow.g.i.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -25,10 +41,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{42DC2D9B-CBB1-07F4-87DB-C1D2972A814B}|FrpManager.csproj|e:\\mygithubproject\\frpmanager\\app.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
       "RelativeMoniker": "D:0:0:{42DC2D9B-CBB1-07F4-87DB-C1D2972A814B}|FrpManager.csproj|solutionrelative:app.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{42DC2D9B-CBB1-07F4-87DB-C1D2972A814B}|FrpManager.csproj|e:\\mygithubproject\\frpmanager\\helpers\\confighelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{42DC2D9B-CBB1-07F4-87DB-C1D2972A814B}|FrpManager.csproj|solutionrelative:helpers\\confighelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -38,7 +50,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 7,
+          "SelectedChildIndex": 8,
           "Children": [
             {
               "$type": "Bookmark",
@@ -46,19 +58,31 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "TomlExtensions.cs",
-              "DocumentMoniker": "E:\\MyGitHubProject\\FrpManager\\Helpers\\TomlExtensions.cs",
-              "RelativeDocumentMoniker": "Helpers\\TomlExtensions.cs",
-              "ToolTip": "E:\\MyGitHubProject\\FrpManager\\Helpers\\TomlExtensions.cs",
-              "RelativeToolTip": "Helpers\\TomlExtensions.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAMAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-28T09:37:36.678Z"
+              "DocumentIndex": 5,
+              "Title": "Strings.zh-CN.xaml",
+              "DocumentMoniker": "E:\\MyGitHubProject\\FrpManager\\Localization\\Strings.zh-CN.xaml",
+              "RelativeDocumentMoniker": "Localization\\Strings.zh-CN.xaml",
+              "ToolTip": "E:\\MyGitHubProject\\FrpManager\\Localization\\Strings.zh-CN.xaml",
+              "RelativeToolTip": "Localization\\Strings.zh-CN.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2026-06-01T15:40:02.523Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
+              "Title": "Models.cs",
+              "DocumentMoniker": "E:\\MyGitHubProject\\FrpManager\\Models\\Models.cs",
+              "RelativeDocumentMoniker": "Models\\Models.cs",
+              "ToolTip": "E:\\MyGitHubProject\\FrpManager\\Models\\Models.cs",
+              "RelativeToolTip": "Models\\Models.cs",
+              "ViewState": "AgIAAHYAAAAAAAAAAAAswJoAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-31T04:44:41.631Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
               "Title": "MainWindow.g.i.cs",
               "DocumentMoniker": "E:\\MyGitHubProject\\FrpManager\\obj\\Debug\\net10.0-windows\\Views\\MainWindow.g.i.cs",
               "RelativeDocumentMoniker": "obj\\Debug\\net10.0-windows\\Views\\MainWindow.g.i.cs",
@@ -70,7 +94,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 9,
               "Title": "App.xaml",
               "DocumentMoniker": "E:\\MyGitHubProject\\FrpManager\\App.xaml",
               "RelativeDocumentMoniker": "App.xaml",
@@ -82,25 +106,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "ConfigHelper.cs",
-              "DocumentMoniker": "E:\\MyGitHubProject\\FrpManager\\Helpers\\ConfigHelper.cs",
-              "RelativeDocumentMoniker": "Helpers\\ConfigHelper.cs",
-              "ToolTip": "E:\\MyGitHubProject\\FrpManager\\Helpers\\ConfigHelper.cs",
-              "RelativeToolTip": "Helpers\\ConfigHelper.cs",
-              "ViewState": "AgIAAG8AAAAAAAAAAADgv38AAAA4AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-28T08:20:42.463Z"
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 2,
               "Title": "MainWindow.xaml.cs",
               "DocumentMoniker": "E:\\MyGitHubProject\\FrpManager\\Views\\MainWindow.xaml.cs",
               "RelativeDocumentMoniker": "Views\\MainWindow.xaml.cs",
               "ToolTip": "E:\\MyGitHubProject\\FrpManager\\Views\\MainWindow.xaml.cs",
               "RelativeToolTip": "Views\\MainWindow.xaml.cs",
-              "ViewState": "AgIAALIAAAAAAAAAAAApwLoAAAA7AAAAAAAAAA==",
+              "ViewState": "AgIAAMQAAAAAAAAAAAApwNcAAAA/AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-05-28T08:11:01.717Z",
               "EditorCaption": ""
@@ -108,15 +120,26 @@
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "DownloadHelper.cs.cs",
-              "DocumentMoniker": "E:\\MyGitHubProject\\FrpManager\\Helpers\\DownloadHelper.cs.cs",
-              "RelativeDocumentMoniker": "Helpers\\DownloadHelper.cs.cs",
-              "ToolTip": "E:\\MyGitHubProject\\FrpManager\\Helpers\\DownloadHelper.cs.cs",
-              "RelativeToolTip": "Helpers\\DownloadHelper.cs.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-29T13:30:19.053Z",
+              "Title": "Strings.en-US.xaml",
+              "DocumentMoniker": "E:\\MyGitHubProject\\FrpManager\\Localization\\Strings.en-US.xaml",
+              "RelativeDocumentMoniker": "Localization\\Strings.en-US.xaml",
+              "ToolTip": "E:\\MyGitHubProject\\FrpManager\\Localization\\Strings.en-US.xaml",
+              "RelativeToolTip": "Localization\\Strings.en-US.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2026-06-01T15:40:23.763Z",
               "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "ConfigHelper.cs",
+              "DocumentMoniker": "E:\\MyGitHubProject\\FrpManager\\Helpers\\ConfigHelper.cs",
+              "RelativeDocumentMoniker": "Helpers\\ConfigHelper.cs",
+              "ToolTip": "E:\\MyGitHubProject\\FrpManager\\Helpers\\ConfigHelper.cs",
+              "RelativeToolTip": "Helpers\\ConfigHelper.cs",
+              "ViewState": "AgIAAAUAAAAAAAAAAAAxwBIAAAA6AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-28T08:20:42.463Z"
             },
             {
               "$type": "Document",
@@ -129,6 +152,30 @@
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
               "WhenOpened": "2026-05-28T08:11:54.356Z",
               "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "TomlExtensions.cs",
+              "DocumentMoniker": "E:\\MyGitHubProject\\FrpManager\\Helpers\\TomlExtensions.cs",
+              "RelativeDocumentMoniker": "Helpers\\TomlExtensions.cs",
+              "ToolTip": "E:\\MyGitHubProject\\FrpManager\\Helpers\\TomlExtensions.cs",
+              "RelativeToolTip": "Helpers\\TomlExtensions.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAMAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-28T09:37:36.678Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "DownloadHelper.cs.cs",
+              "DocumentMoniker": "E:\\MyGitHubProject\\FrpManager\\Helpers\\DownloadHelper.cs.cs",
+              "RelativeDocumentMoniker": "Helpers\\DownloadHelper.cs.cs",
+              "ToolTip": "E:\\MyGitHubProject\\FrpManager\\Helpers\\DownloadHelper.cs.cs",
+              "RelativeToolTip": "Helpers\\DownloadHelper.cs.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-29T13:30:19.053Z"
             }
           ]
         }

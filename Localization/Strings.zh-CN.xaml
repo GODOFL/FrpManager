@@ -195,4 +195,16 @@
     <sys:String x:Key="S_SyncSecretKeyTitle">提示</sys:String>
     <sys:String x:Key="S_SyncSelectFirst">请先从下拉框选择一个代理</sys:String>
     <sys:String x:Key="S_SyncNoSecret">该代理未设置 secretKey</sys:String>
+    <!-- Auto-start & Tray -->
+    <sys:String x:Key="S_AutoStart">开机自动启动</sys:String>
+    <sys:String x:Key="S_AutoStartHint">开启后，系统启动时自动运行 FrpManager 并启动 frpc</sys:String>
+    <sys:String x:Key="S_TrayShow">显示窗口</sys:String>
+    <sys:String x:Key="S_TrayStartFrpc">启动 frpc</sys:String>
+    <sys:String x:Key="S_TrayStopFrpc">停止 frpc</sys:String>
+    <sys:String x:Key="S_TrayExit">退出</sys:String>
+    <sys:String x:Key="S_TrayBalloonTitle">FrpManager</sys:String>
+    <sys:String x:Key="S_TrayBalloonText">仍在后台运行，双击托盘图标打开窗口</sys:String>
+    <sys:String x:Key="S_AppErrorTitle">FrpManager 错误</sys:String>
+    <sys:String x:Key="S_AppCrashTitle">FrpManager 崩溃</sys:String>
+    <sys:String x:Key="S_AutoStartSection">系统设置</sys:String>
 </ResourceDictionary>

@@ -131,6 +131,8 @@ namespace FrpManager.Models
         public string FrpcPath { get; set; } = "";
         public List<string> RecentFrpcPaths { get; set; } = new();
         public string Language { get; set; } = "zh-CN";
+        public bool AutoStartEnabled { get; set; } = false;
+        public bool FrpcWasRunning { get; set; } = false;
     }
 
     // ── GitHub ────────────────────────────────────────────────────────────

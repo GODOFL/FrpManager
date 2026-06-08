@@ -4,6 +4,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>FrpManager</AssemblyName>
     <RootNamespace>FrpManager</RootNamespace>
     <Nullable>enable</Nullable>

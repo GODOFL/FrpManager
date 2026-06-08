@@ -1,3 +1,799 @@
+# Auto-Start, System Tray, i18n & Code Optimization — Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Add auto-start on boot, system tray minimize-to-background, complete i18n coverage, and refactor MainWindow.xaml.cs from 1040 lines into focused helper classes.
+
+**Architecture:** Extract 5 new focused classes (LocalizationService, AutoStartHelper, TrayIconManager, FrpcProcessManager, TerminalWriter) from MainWindow. Wire them together in a slimmed-down MainWindow (~500 lines). Add ~15 i18n keys to both language files. Use Windows Registry for auto-start and System.Windows.Forms.NotifyIcon for the tray.
+
+**Tech Stack:** .NET 10 WPF, System.Windows.Forms (for NotifyIcon), Microsoft.Win32.Registry
+
+---
+
+### Task 1: Fix filename typo
+
+**Files:**
+- Rename: `Helpers/DownloadHelper.cs.cs` → `Helpers/DownloadHelper.cs`
+
+- [ ] **Step 1: Rename the file**
+
+Run: `git mv "E:/MyGitHubProject/FrpManager/Helpers/DownloadHelper.cs.cs" "E:/MyGitHubProject/FrpManager/Helpers/DownloadHelper.cs"`
+
+- [ ] **Step 2: Verify it compiles**
+
+Run: `cd E:/MyGitHubProject/FrpManager && dotnet build 2>&1 | tail -5`
+Expected: Build succeeded.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add Helpers/DownloadHelper.cs.cs Helpers/DownloadHelper.cs
+git commit -m "fix: rename DownloadHelper.cs.cs to DownloadHelper.cs"
+```
+
+---
+
+### Task 2: Add AutoStartEnabled and FrpcWasRunning to AppSettings model
+
+**Files:**
+- Modify: `Models/Models.cs`
+
+- [ ] **Step 1: Add properties to AppSettings**
+
+In `Models/Models.cs`, change the `AppSettings` class to:
+
+```csharp
+public class AppSettings
+{
+    public string FrpcPath { get; set; } = "";
+    public List<string> RecentFrpcPaths { get; set; } = new();
+    public string Language { get; set; } = "zh-CN";
+    public bool AutoStartEnabled { get; set; } = false;
+    public bool FrpcWasRunning { get; set; } = false;
+}
+```
+
+- [ ] **Step 2: Verify build**
+
+Run: `cd E:/MyGitHubProject/FrpManager && dotnet build 2>&1 | tail -5`
+Expected: Build succeeded.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add Models/Models.cs
+git commit -m "feat: add AutoStartEnabled and FrpcWasRunning to AppSettings"
+```
+
+---
+
+### Task 3: Create AutoStartHelper
+
+**Files:**
+- Create: `Helpers/AutoStartHelper.cs`
+
+- [ ] **Step 1: Write AutoStartHelper.cs**
+
+```csharp
+using Microsoft.Win32;
+
+namespace FrpManager.Helpers
+{
+    public static class AutoStartHelper
+    {
+        private const string RunKeyPath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
+        private const string AppName = "FrpManager";
+
+        public static bool IsEnabled()
+        {
+            try
+            {
+                using var key = Registry.CurrentUser.OpenSubKey(RunKeyPath);
+                return key?.GetValue(AppName) != null;
+            }
+            catch { return false; }
+        }
+
+        public static void Enable()
+        {
+            try
+            {
+                using var key = Registry.CurrentUser.OpenSubKey(RunKeyPath, writable: true);
+                var exePath = Environment.ProcessPath ?? System.Reflection.Assembly.GetExecutingAssembly().Location;
+                // Append --autostart so the app knows to start minimized
+                key?.SetValue(AppName, $"\"{exePath}\" --autostart");
+            }
+            catch { /* silently fail — user may not have registry permissions */ }
+        }
+
+        public static void Disable()
+        {
+            try
+            {
+                using var key = Registry.CurrentUser.OpenSubKey(RunKeyPath, writable: true);
+                key?.DeleteValue(AppName, throwOnMissingValue: false);
+            }
+            catch { }
+        }
+
+        /// <summary>Returns true if the current launch was triggered by the auto-start registry entry.</summary>
+        public static bool IsAutoStartLaunch()
+        {
+            var args = Environment.GetCommandLineArgs();
+            return args.Contains("--autostart", StringComparer.OrdinalIgnoreCase);
+        }
+    }
+}
+```
+
+- [ ] **Step 2: Verify build**
+
+Run: `cd E:/MyGitHubProject/FrpManager && dotnet build 2>&1 | tail -5`
+Expected: Build succeeded.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add Helpers/AutoStartHelper.cs
+git commit -m "feat: add AutoStartHelper for registry-based auto-start on boot"
+```
+
+---
+
+### Task 4: Create LocalizationService
+
+**Files:**
+- Create: `Helpers/LocalizationService.cs`
+
+- [ ] **Step 1: Write LocalizationService.cs**
+
+```csharp
+using System.Windows;
+
+namespace FrpManager.Helpers
+{
+    public class LocalizationService
+    {
+        public string CurrentLanguage { get; private set; } = "zh-CN";
+        public event Action? LanguageChanged;
+
+        /// <summary>Load the saved language or fall back to zh-CN.</summary>
+        public void Initialize(string savedLang)
+        {
+            if (savedLang is "en-US" or "zh-CN")
+            {
+                CurrentLanguage = savedLang;
+                LoadResourceDictionary(savedLang);
+            }
+            else
+            {
+                CurrentLanguage = "zh-CN";
+            }
+        }
+
+        /// <summary>Toggle between zh-CN and en-US. Returns the new language code.</summary>
+        public string Toggle()
+        {
+            CurrentLanguage = CurrentLanguage == "zh-CN" ? "en-US" : "zh-CN";
+            LoadResourceDictionary(CurrentLanguage);
+            LanguageChanged?.Invoke();
+            return CurrentLanguage;
+        }
+
+        /// <summary>Look up a localized string by resource key.</summary>
+        public string Get(string key)
+        {
+            return Application.Current.TryFindResource(key) as string ?? key;
+        }
+
+        private static void LoadResourceDictionary(string lang)
+        {
+            var dicts = Application.Current.Resources.MergedDictionaries;
+            var existing = dicts.FirstOrDefault(d =>
+                d.Source?.OriginalString.Contains("Localization") == true);
+            if (existing != null) dicts.Remove(existing);
+
+            var uri = new Uri($"Localization/Strings.{lang}.xaml", UriKind.Relative);
+            dicts.Add(new ResourceDictionary { Source = uri });
+        }
+    }
+}
+```
+
+- [ ] **Step 2: Verify build**
+
+Run: `cd E:/MyGitHubProject/FrpManager && dotnet build 2>&1 | tail -5`
+Expected: Build succeeded.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add Helpers/LocalizationService.cs
+git commit -m "feat: add LocalizationService for centralized language management"
+```
+
+---
+
+### Task 5: Create TerminalWriter
+
+**Files:**
+- Create: `Views/TerminalWriter.cs`
+
+- [ ] **Step 1: Write TerminalWriter.cs**
+
+```csharp
+using System.Text.RegularExpressions;
+using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows.Media;
+
+namespace FrpManager.Views
+{
+    public class TerminalWriter
+    {
+        private readonly RichTextBox _box;
+        private const int MaxLines = 2000;
+
+        private static readonly Brush BrushInfo = new SolidColorBrush(Color.FromRgb(0xB8, 0xD8, 0xEE));
+        private static readonly Brush BrushWarn = new SolidColorBrush(Color.FromRgb(0xF0, 0xC0, 0x60));
+        private static readonly Brush BrushError = new SolidColorBrush(Color.FromRgb(0xF0, 0x80, 0x80));
+        private static readonly Brush BrushSuccess = new SolidColorBrush(Color.FromRgb(0x70, 0xD0, 0xA0));
+        private static readonly Brush BrushMuted = new SolidColorBrush(Color.FromRgb(0x60, 0x88, 0xA0));
+
+        public TerminalWriter(RichTextBox terminalBox)
+        {
+            _box = terminalBox;
+        }
+
+        public void AppendLine(string line, bool isStderr = false)
+        {
+            // Strip ANSI escape codes
+            line = Regex.Replace(line, @"\x1B\[[0-9;]*m", "");
+            Brush brush;
+            if (isStderr) brush = BrushError;
+            else if (line.Contains("[E]")) brush = BrushError;
+            else if (line.Contains("[W]")) brush = BrushWarn;
+            else if (line.Contains("[I]")) brush = BrushInfo;
+            else if (line.Contains("success", StringComparison.OrdinalIgnoreCase) ||
+                     line.Contains("started", StringComparison.OrdinalIgnoreCase))
+                brush = BrushSuccess;
+            else brush = BrushInfo;
+            Append(line, brush);
+        }
+
+        public void Append(string text, Brush brush)
+        {
+            _box.Dispatcher.Invoke(() =>
+            {
+                var para = new Paragraph(new Run(text)) { Foreground = brush };
+                _box.Document.Blocks.Add(para);
+                _box.ScrollToEnd();
+                while (_box.Document.Blocks.Count > MaxLines)
+                    _box.Document.Blocks.Remove(_box.Document.Blocks.FirstBlock);
+            });
+        }
+
+        public void Clear()
+        {
+            _box.Dispatcher.Invoke(() => _box.Document.Blocks.Clear());
+        }
+    }
+}
+```
+
+- [ ] **Step 2: Verify build**
+
+Run: `cd E:/MyGitHubProject/FrpManager && dotnet build 2>&1 | tail -5`
+Expected: Build succeeded.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add Views/TerminalWriter.cs
+git commit -m "feat: extract TerminalWriter from MainWindow for terminal output management"
+```
+
+---
+
+### Task 6: Create FrpcProcessManager
+
+**Files:**
+- Create: `Helpers/FrpcProcessManager.cs`
+
+- [ ] **Step 1: Write FrpcProcessManager.cs**
+
+```csharp
+using System.Diagnostics;
+
+namespace FrpManager.Helpers
+{
+    public class FrpcProcessManager : IDisposable
+    {
+        private Process? _proc;
+        private bool _disposed;
+
+        public bool IsRunning => _proc != null && !_proc.HasExited;
+        public int? ProcessId => _proc?.Id;
+
+        /// <summary>Fires on background thread — caller must dispatch to UI.</summary>
+        public event Action<string, bool>? LineReceived;
+        /// <summary>Fires on background thread — caller must dispatch to UI.</summary>
+        public event Action<int>? ProcessExited;
+
+        public void Start(string frpcPath, string configPath)
+        {
+            Stop();
+
+            _proc = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = frpcPath,
+                    Arguments = $"-c \"{configPath}\"",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true,
+                    StandardOutputEncoding = System.Text.Encoding.UTF8,
+                    StandardErrorEncoding = System.Text.Encoding.UTF8,
+                },
+                EnableRaisingEvents = true
+            };
+
+            _proc.OutputDataReceived += (_, de) =>
+            {
+                if (de.Data != null) LineReceived?.Invoke(de.Data, false);
+            };
+            _proc.ErrorDataReceived += (_, de) =>
+            {
+                if (de.Data != null) LineReceived?.Invoke(de.Data, true);
+            };
+            _proc.Exited += (_, _) =>
+            {
+                ProcessExited?.Invoke(_proc?.ExitCode ?? -1);
+            };
+
+            _proc.Start();
+            _proc.BeginOutputReadLine();
+            _proc.BeginErrorReadLine();
+        }
+
+        public void Stop()
+        {
+            if (_proc == null) return;
+            try
+            {
+                if (!_proc.HasExited)
+                {
+                    _proc.Kill(true);
+                }
+            }
+            catch { /* process may have already exited */ }
+            finally
+            {
+                _proc.Dispose();
+                _proc = null;
+            }
+        }
+
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
+            Stop();
+        }
+    }
+}
+```
+
+- [ ] **Step 2: Verify build**
+
+Run: `cd E:/MyGitHubProject/FrpManager && dotnet build 2>&1 | tail -5`
+Expected: Build succeeded.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add Helpers/FrpcProcessManager.cs
+git commit -m "feat: extract FrpcProcessManager for frpc process lifecycle"
+```
+
+---
+
+### Task 7: Create TrayIconManager
+
+**Files:**
+- Create: `Views/TrayIconManager.cs`
+
+- [ ] **Step 1: Write TrayIconManager.cs**
+
+```csharp
+using FrpManager.Helpers;
+using System.Windows;
+
+namespace FrpManager.Views
+{
+    public class TrayIconManager : IDisposable
+    {
+        private readonly System.Windows.Forms.NotifyIcon _icon;
+        private readonly System.Windows.Forms.ContextMenuStrip _menu;
+        private readonly System.Windows.Forms.ToolStripMenuItem _itemShow;
+        private readonly System.Windows.Forms.ToolStripMenuItem _itemFrpc;
+        private readonly System.Windows.Forms.ToolStripMenuItem _itemExit;
+        private readonly Window _owner;
+        private readonly LocalizationService _loc;
+        private bool _frpcRunning;
+        private bool _disposed;
+
+        public event Action? ShowWindowRequested;
+        public event Action? ToggleFrpcRequested;
+        public event Action? ExitRequested;
+
+        public TrayIconManager(Window owner, LocalizationService loc)
+        {
+            _owner = owner;
+            _loc = loc;
+            loc.LanguageChanged += RefreshLabels;
+
+            _itemShow = new System.Windows.Forms.ToolStripMenuItem();
+            _itemShow.Click += (_, _) => ShowWindowRequested?.Invoke();
+
+            _itemFrpc = new System.Windows.Forms.ToolStripMenuItem();
+            _itemFrpc.Click += (_, _) => ToggleFrpcRequested?.Invoke();
+
+            _itemExit = new System.Windows.Forms.ToolStripMenuItem();
+            _itemExit.Click += (_, _) => ExitRequested?.Invoke();
+
+            _menu = new System.Windows.Forms.ContextMenuStrip();
+            _menu.Items.Add(_itemShow);
+            _menu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
+            _menu.Items.Add(_itemFrpc);
+            _menu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
+            _menu.Items.Add(_itemExit);
+
+            // Use the app's embedded icon
+            var iconPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app.ico");
+            var appIcon = System.IO.File.Exists(iconPath)
+                ? new System.Drawing.Icon(iconPath)
+                : System.Drawing.SystemIcons.Application;
+
+            _icon = new System.Windows.Forms.NotifyIcon
+            {
+                Icon = appIcon,
+                Text = "FrpManager",
+                ContextMenuStrip = _menu,
+                Visible = true
+            };
+            _icon.DoubleClick += (_, _) => ShowWindowRequested?.Invoke();
+
+            RefreshLabels();
+        }
+
+        public void SetFrpcRunning(bool running)
+        {
+            _frpcRunning = running;
+            _itemFrpc.Text = running
+                ? _loc.Get("S_TrayStopFrpc")
+                : _loc.Get("S_TrayStartFrpc");
+        }
+
+        public void ShowBalloon(string title, string text)
+        {
+            _icon.ShowBalloonTip(3000, title, text,
+                System.Windows.Forms.ToolTipIcon.Info);
+        }
+
+        public void HideToTray()
+        {
+            _owner.WindowState = WindowState.Minimized;
+            _owner.ShowInTaskbar = false;
+            _owner.Hide();
+        }
+
+        public void ShowWindow()
+        {
+            _owner.Show();
+            _owner.WindowState = WindowState.Normal;
+            _owner.ShowInTaskbar = true;
+            _owner.Activate();
+        }
+
+        private void RefreshLabels()
+        {
+            _itemShow.Text = _loc.Get("S_TrayShow");
+            _itemFrpc.Text = _frpcRunning
+                ? _loc.Get("S_TrayStopFrpc")
+                : _loc.Get("S_TrayStartFrpc");
+            _itemExit.Text = _loc.Get("S_TrayExit");
+            _icon.Text = "FrpManager";
+        }
+
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
+            _loc.LanguageChanged -= RefreshLabels;
+            _icon.Visible = false;
+            _icon.Dispose();
+            _menu.Dispose();
+        }
+    }
+}
+```
+
+- [ ] **Step 2: Verify build**
+
+Run: `cd E:/MyGitHubProject/FrpManager && dotnet build 2>&1 | tail -5`
+Expected: Build succeeded.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add Views/TrayIconManager.cs
+git commit -m "feat: add TrayIconManager for system tray minimize-to-background"
+```
+
+---
+
+### Task 8: Add new i18n keys to both language files
+
+**Files:**
+- Modify: `Localization/Strings.zh-CN.xaml`
+- Modify: `Localization/Strings.en-US.xaml`
+
+- [ ] **Step 1: Add keys to Strings.zh-CN.xaml**
+
+In `Localization/Strings.zh-CN.xaml`, insert before `</ResourceDictionary>`:
+
+```xml
+    <!-- Auto-start & Tray (new) -->
+    <sys:String x:Key="S_AutoStart">开机自动启动</sys:String>
+    <sys:String x:Key="S_AutoStartHint">开启后，系统启动时自动运行 FrpManager 并启动 frpc</sys:String>
+    <sys:String x:Key="S_TrayShow">显示窗口</sys:String>
+    <sys:String x:Key="S_TrayStartFrpc">启动 frpc</sys:String>
+    <sys:String x:Key="S_TrayStopFrpc">停止 frpc</sys:String>
+    <sys:String x:Key="S_TrayExit">退出</sys:String>
+    <sys:String x:Key="S_TrayBalloonTitle">FrpManager</sys:String>
+    <sys:String x:Key="S_TrayBalloonText">仍在后台运行，双击托盘图标打开窗口</sys:String>
+    <sys:String x:Key="S_AppErrorTitle">FrpManager 错误</sys:String>
+    <sys:String x:Key="S_AppCrashTitle">FrpManager 崩溃</sys:String>
+    <sys:String x:Key="S_AutoStartSection">系统设置</sys:String>
+</ResourceDictionary>
+```
+
+- [ ] **Step 2: Add keys to Strings.en-US.xaml**
+
+In `Localization/Strings.en-US.xaml`, insert before `</ResourceDictionary>`:
+
+```xml
+    <!-- Auto-start & Tray (new) -->
+    <sys:String x:Key="S_AutoStart">Start with Windows</sys:String>
+    <sys:String x:Key="S_AutoStartHint">When enabled, FrpManager starts automatically with Windows</sys:String>
+    <sys:String x:Key="S_TrayShow">Show Window</sys:String>
+    <sys:String x:Key="S_TrayStartFrpc">Start frpc</sys:String>
+    <sys:String x:Key="S_TrayStopFrpc">Stop frpc</sys:String>
+    <sys:String x:Key="S_TrayExit">Exit</sys:String>
+    <sys:String x:Key="S_TrayBalloonTitle">FrpManager</sys:String>
+    <sys:String x:Key="S_TrayBalloonText">Still running in background. Double-click tray icon to open.</sys:String>
+    <sys:String x:Key="S_AppErrorTitle">FrpManager Error</sys:String>
+    <sys:String x:Key="S_AppCrashTitle">FrpManager Crash</sys:String>
+    <sys:String x:Key="S_AutoStartSection">System Settings</sys:String>
+</ResourceDictionary>
+```
+
+- [ ] **Step 3: Verify build**
+
+Run: `cd E:/MyGitHubProject/FrpManager && dotnet build 2>&1 | tail -5`
+Expected: Build succeeded.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add Localization/Strings.zh-CN.xaml Localization/Strings.en-US.xaml
+git commit -m "feat: add i18n keys for auto-start, tray, and error dialogs"
+```
+
+---
+
+### Task 9: Update FrpManager.csproj to reference System.Windows.Forms
+
+**Files:**
+- Modify: `FrpManager.csproj`
+
+- [ ] **Step 1: Add UseWindowsForms and package reference**
+
+In `FrpManager.csproj`, change the PropertyGroup to add `<UseWindowsForms>true</UseWindowsForms>` and add the System.Windows.Forms package:
+
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <AssemblyName>FrpManager</AssemblyName>
+    <RootNamespace>FrpManager</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Themes/SkyTheme.xaml" />
+    <Resource Include="app.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Tomlyn" Version="0.17.0" />
+  </ItemGroup>
+
+</Project>
+```
+
+- [ ] **Step 2: Verify build**
+
+Run: `cd E:/MyGitHubProject/FrpManager && dotnet build 2>&1 | tail -5`
+Expected: Build succeeded.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add FrpManager.csproj
+git commit -m "build: add UseWindowsForms for NotifyIcon system tray support"
+```
+
+---
+
+### Task 10: Update App.xaml.cs with i18n error messages and auto-start handling
+
+**Files:**
+- Modify: `App.xaml.cs`
+
+- [ ] **Step 1: Rewrite App.xaml.cs**
+
+```csharp
+using FrpManager.Helpers;
+using FrpManager.Views;
+using System.Windows;
+using System.Windows.Threading;
+
+namespace FrpManager
+{
+    public partial class App : Application
+    {
+        private LocalizationService? _loc;
+        private TrayIconManager? _tray;
+
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            base.OnStartup(e);
+
+            // Init localization first so error messages can be localized
+            var settings = SettingsHelper.Load();
+            _loc = new LocalizationService();
+            _loc.Initialize(settings.Language);
+
+            // Global exception handlers
+            DispatcherUnhandledException += (_, ex) =>
+            {
+                MessageBox.Show(
+                    $"{_loc.Get("S_AppErrorTitle")}：\n\n{ex.Exception.Message}",
+                    "FrpManager", MessageBoxButton.OK, MessageBoxImage.Error);
+                ex.Handled = true;
+            };
+
+            AppDomain.CurrentDomain.UnhandledException += (_, ex) =>
+            {
+                MessageBox.Show(ex.ExceptionObject?.ToString(),
+                    _loc.Get("S_AppCrashTitle"), MessageBoxButton.OK, MessageBoxImage.Error);
+            };
+
+            // Create and show main window
+            var mainWindow = new MainWindow(_loc, settings);
+            
+            // Setup tray icon
+            _tray = new TrayIconManager(mainWindow, _loc);
+            _tray.ShowWindowRequested += () => _tray.ShowWindow();
+            _tray.ExitRequested += () =>
+            {
+                mainWindow.ShutdownFrpc();
+                _tray.Dispose();
+                Shutdown();
+            };
+            _tray.ToggleFrpcRequested += () => mainWindow.ToggleFrpc();
+            mainWindow.SetTrayIcon(_tray);
+
+            // If launched via auto-start, start minimized to tray
+            if (AutoStartHelper.IsAutoStartLaunch())
+            {
+                mainWindow.Loaded += (_, _) =>
+                {
+                    _tray.HideToTray();
+                    // Resume frpc if it was running last session
+                    if (settings.FrpcWasRunning)
+                        mainWindow.AutoResumeFrpc();
+                };
+            }
+
+            mainWindow.Show();
+        }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            _tray?.Dispose();
+            base.OnExit(e);
+        }
+    }
+}
+```
+
+- [ ] **Step 2: Verify build**
+
+Run: `cd E:/MyGitHubProject/FrpManager && dotnet build 2>&1 | tail -5`
+Expected: Build succeeded.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add App.xaml.cs
+git commit -m "feat: i18n error dialogs, auto-start launch handling, tray wiring in App"
+```
+
+---
+
+### Task 11: Add auto-start checkbox to MainWindow.xaml
+
+**Files:**
+- Modify: `Views/MainWindow.xaml`
+
+- [ ] **Step 1: Add auto-start section to Server Config tab**
+
+In `Views/MainWindow.xaml`, find the Server Config tab (after the Log File card, before the closing `</StackPanel>` of the Server tab). Add a new card section:
+
+In the Server Config tab ScrollViewer, after the Log File card (`</Border>` that contains `S_LogFileSection`) and before `</StackPanel>` / `</ScrollViewer>`, add:
+
+```xml
+                            <!-- Auto-start -->
+                            <Border Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <TextBlock Text="{DynamicResource S_AutoStartSection}" Style="{StaticResource SectionLabel}"/>
+                                    <CheckBox x:Name="ChkAutoStart" Style="{StaticResource SkyCheckBox}"
+                                              Content="{DynamicResource S_AutoStart}"
+                                              Checked="AutoStart_Changed" Unchecked="AutoStart_Changed"
+                                              Margin="0,4,0,0"/>
+                                    <TextBlock Text="{DynamicResource S_AutoStartHint}"
+                                               Foreground="{StaticResource TextMutedBrush}" FontSize="11"
+                                               Margin="20,2,0,0" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+```
+
+- [ ] **Step 2: Verify build**
+
+Run: `cd E:/MyGitHubProject/FrpManager && dotnet build 2>&1 | tail -5`
+Expected: Build succeeded.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add Views/MainWindow.xaml
+git commit -m "feat: add auto-start checkbox to Server Config tab"
+```
+
+---
+
+### Task 12: Refactor MainWindow.xaml.cs — slim down to ~500 lines
+
+**Files:**
+- Modify: `Views/MainWindow.xaml.cs`
+
+This is the largest task. The full new file content is below.
+
+- [ ] **Step 1: Write the refactored MainWindow.xaml.cs**
+
+```csharp
 using FrpManager.Helpers;
 using FrpManager.Models;
 using Microsoft.Win32;
@@ -6,21 +802,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using Tomlyn;
 using Tomlyn.Model;
-// WinForms/WPF type conflict resolution
-using Brush = System.Windows.Media.Brush;
-using Button = System.Windows.Controls.Button;
-using Clipboard = System.Windows.Clipboard;
-using Color = System.Windows.Media.Color;
-using FontFamily = System.Windows.Media.FontFamily;
-using HorizontalAlignment = System.Windows.HorizontalAlignment;
-using ListBox = System.Windows.Controls.ListBox;
-using MessageBox = System.Windows.MessageBox;
-using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
-using Orientation = System.Windows.Controls.Orientation;
-using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
 
 namespace FrpManager.Views
 {
@@ -34,7 +817,7 @@ namespace FrpManager.Views
         private readonly ServerConfig _server = new();
         private readonly ObservableCollection<ProxyConfig> _proxies = new();
         private readonly ObservableCollection<VisitorConfig> _visitors = new();
-        private AppSettings _settings;
+        private AppSettings _settings = new();
 
         private ProxyConfig? _curProxy;
         private VisitorConfig? _curVisitor;
@@ -66,7 +849,7 @@ namespace FrpManager.Views
                 RefreshDynamicLabels();
             };
 
-            // Wire frpc process events (LineReceived fires on background thread)
+            // Wire frpc process events
             _frpc.LineReceived += (line, isStderr) =>
                 Dispatcher.Invoke(() => _term?.AppendLine(line, isStderr));
             _frpc.ProcessExited += (code) =>
@@ -83,7 +866,7 @@ namespace FrpManager.Views
             RefreshPreview();
             SetStatus(L("S_Ready"));
 
-            MainTabs.SelectionChanged += (_, _) =>
+            MainTabs.SelectionChanged += (s, e) =>
             {
                 if (MainTabs.SelectedItem == TabTomlLib)
                     LoadTomlFileList();
@@ -100,8 +883,7 @@ namespace FrpManager.Views
 
         public void AutoResumeFrpc()
         {
-            if (!string.IsNullOrWhiteSpace(_settings.FrpcPath)
-                && File.Exists(_settings.FrpcPath))
+            if (!string.IsNullOrWhiteSpace(_settings.FrpcPath) && File.Exists(_settings.FrpcPath))
                 Btn_Start(this, new RoutedEventArgs());
         }
 
@@ -175,17 +957,17 @@ namespace FrpManager.Views
             if (string.IsNullOrWhiteSpace(path))
             {
                 TxtFrpcPathHint.Text = L("S_FrpcPathHintEmpty");
-                TxtFrpcPathHint.Foreground = (Brush)FindResource("TextMutedBrush");
+                TxtFrpcPathHint.Foreground = (System.Windows.Media.Brush)FindResource("TextMutedBrush");
             }
             else if (File.Exists(path))
             {
                 TxtFrpcPathHint.Text = L("S_FrpcPathHintOk");
-                TxtFrpcPathHint.Foreground = (Brush)FindResource("AccentGreenBrush");
+                TxtFrpcPathHint.Foreground = (System.Windows.Media.Brush)FindResource("AccentGreenBrush");
             }
             else
             {
                 TxtFrpcPathHint.Text = L("S_FrpcPathHintBad");
-                TxtFrpcPathHint.Foreground = (Brush)FindResource("AccentRedBrush");
+                TxtFrpcPathHint.Foreground = (System.Windows.Media.Brush)FindResource("AccentRedBrush");
             }
         }
 
@@ -256,8 +1038,7 @@ namespace FrpManager.Views
         void Server_FieldChanged(object s, RoutedEventArgs e)
         {
             if (_busy) return;
-            if (S_Addr == null || S_Port == null || S_Token == null
-                || S_LogFile == null || S_LogLevel == null || S_StunServer == null)
+            if (S_Addr == null || S_Port == null || S_Token == null || S_LogFile == null || S_LogLevel == null)
                 return;
 
             _server.ServerAddr = S_Addr.Text.Trim();
@@ -618,9 +1399,11 @@ namespace FrpManager.Views
 
         void SetFrpRunning(bool on)
         {
-            var green = Color.FromRgb(0x52, 0xB7, 0x88);
-            StatusDot.Fill = new SolidColorBrush(on ? green : Color.FromRgb(0xC0, 0xC0, 0xC0));
-            TermDot.Fill = new SolidColorBrush(on ? green : Color.FromRgb(0x55, 0x55, 0x55));
+            var green = System.Windows.Media.Color.FromRgb(0x52, 0xB7, 0x88);
+            StatusDot.Fill = new System.Windows.Media.SolidColorBrush(
+                on ? green : System.Windows.Media.Color.FromRgb(0xC0, 0xC0, 0xC0));
+            TermDot.Fill = new System.Windows.Media.SolidColorBrush(
+                on ? green : System.Windows.Media.Color.FromRgb(0x55, 0x55, 0x55));
             TxtFrpStatus.Text = on ? L("S_FrpcRunning") : L("S_FrpcNotRunning");
             TxtTermStatus.Text = on
                 ? $"{L("S_FrpcRunning")} (PID {_frpc.ProcessId})"
@@ -633,11 +1416,6 @@ namespace FrpManager.Views
 
             _tray?.SetFrpcRunning(on);
         }
-
-        // ══ Terminal ════════════════════════════════════════════════════════
-
-        void Btn_ClearTerminal(object s, RoutedEventArgs e)
-            => _term?.Clear();
 
         // ══ Config Library ══════════════════════════════════════════════════
 
@@ -678,8 +1456,9 @@ namespace FrpManager.Views
 
             var border = new Border
             {
-                Background = new SolidColorBrush(Colors.White),
-                BorderBrush = new SolidColorBrush(Color.FromRgb(0xB8, 0xD8, 0xEE)),
+                Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.White),
+                BorderBrush = new System.Windows.Media.SolidColorBrush(
+                    System.Windows.Media.Color.FromRgb(0xB8, 0xD8, 0xEE)),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(9),
                 Padding = new Thickness(16, 12, 16, 12),
@@ -694,15 +1473,17 @@ namespace FrpManager.Views
             infoPanel.Children.Add(new TextBlock
             {
                 Text = Path.GetFileName(path),
-                Foreground = new SolidColorBrush(Color.FromRgb(0x1A, 0x3A, 0x50)),
+                Foreground = new System.Windows.Media.SolidColorBrush(
+                    System.Windows.Media.Color.FromRgb(0x1A, 0x3A, 0x50)),
                 FontSize = 14,
                 FontWeight = FontWeights.SemiBold,
-                FontFamily = new FontFamily("Consolas")
+                FontFamily = new System.Windows.Media.FontFamily("Consolas")
             });
             infoPanel.Children.Add(new TextBlock
             {
                 Text = $"{L("S_ModifiedTime")}: {modified}    {size}",
-                Foreground = new SolidColorBrush(Color.FromRgb(0x5A, 0x7D, 0x95)),
+                Foreground = new System.Windows.Media.SolidColorBrush(
+                    System.Windows.Media.Color.FromRgb(0x5A, 0x7D, 0x95)),
                 FontSize = 11,
                 Margin = new Thickness(0, 3, 0, 0)
             });
@@ -835,7 +1616,8 @@ namespace FrpManager.Views
                 {
                     var hdr = new Border
                     {
-                        Background = new SolidColorBrush(Color.FromRgb(0xD8, 0xEE, 0xF8)),
+                        Background = new System.Windows.Media.SolidColorBrush(
+                            System.Windows.Media.Color.FromRgb(0xD8, 0xEE, 0xF8)),
                         CornerRadius = new CornerRadius(8),
                         Padding = new Thickness(14, 8, 14, 8),
                         Margin = new Thickness(0, 0, 0, 4)
@@ -844,7 +1626,7 @@ namespace FrpManager.Views
                     hSp.Children.Add(new TextBlock
                     {
                         Text = $"🏷  {rel.name ?? rel.tag_name}",
-                        Foreground = (Brush)FindResource("AccentDarkBrush"),
+                        Foreground = (System.Windows.Media.Brush)FindResource("AccentDarkBrush"),
                         FontSize = 14,
                         FontWeight = FontWeights.SemiBold,
                         VerticalAlignment = VerticalAlignment.Center
@@ -853,7 +1635,7 @@ namespace FrpManager.Views
                         hSp.Children.Add(new TextBlock
                         {
                             Text = $"    {rel.published_at[..10]}",
-                            Foreground = (Brush)FindResource("TextSecondaryBrush"),
+                            Foreground = (System.Windows.Media.Brush)FindResource("TextSecondaryBrush"),
                             FontSize = 12,
                             VerticalAlignment = VerticalAlignment.Center
                         });
@@ -873,7 +1655,7 @@ namespace FrpManager.Views
                 AssetPanel.Children.Clear();
                 AssetPanel.Children.Add(MakeTextBlock(
                     L("S_StatusLoadFail") + ex.Message,
-                    (Brush)FindResource("AccentRedBrush")));
+                    (System.Windows.Media.Brush)FindResource("AccentRedBrush")));
                 TxtRelInfo.Text = L("S_StatusUpdateFail");
             }
         }
@@ -883,8 +1665,9 @@ namespace FrpManager.Views
             bool isWin = asset.name.Contains("windows", StringComparison.OrdinalIgnoreCase);
             var border = new Border
             {
-                Background = new SolidColorBrush(Colors.White),
-                BorderBrush = new SolidColorBrush(Color.FromRgb(0xB8, 0xD8, 0xEE)),
+                Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.White),
+                BorderBrush = new System.Windows.Media.SolidColorBrush(
+                    System.Windows.Media.Color.FromRgb(0xB8, 0xD8, 0xEE)),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(7),
                 Padding = new Thickness(14, 9, 14, 9),
@@ -897,14 +1680,16 @@ namespace FrpManager.Views
             info.Children.Add(new TextBlock
             {
                 Text = (isWin ? "🪟 " : "") + asset.name,
-                Foreground = new SolidColorBrush(Color.FromRgb(0x1A, 0x3A, 0x50)),
-                FontFamily = new FontFamily("Consolas"),
+                Foreground = new System.Windows.Media.SolidColorBrush(
+                    System.Windows.Media.Color.FromRgb(0x1A, 0x3A, 0x50)),
+                FontFamily = new System.Windows.Media.FontFamily("Consolas"),
                 FontSize = 13
             });
             info.Children.Add(new TextBlock
             {
                 Text = asset.SizeLabel,
-                Foreground = new SolidColorBrush(Color.FromRgb(0x5A, 0x7D, 0x95)),
+                Foreground = new System.Windows.Media.SolidColorBrush(
+                    System.Windows.Media.Color.FromRgb(0x5A, 0x7D, 0x95)),
                 FontSize = 11,
                 Margin = new Thickness(0, 2, 0, 0)
             });
@@ -993,10 +1778,11 @@ namespace FrpManager.Views
 
         // ══ Helpers ═════════════════════════════════════════════════════════
 
-        static TextBlock MakeTextBlock(string text, Brush? fg = null) => new()
+        static TextBlock MakeTextBlock(string text, System.Windows.Media.Brush? fg = null) => new()
         {
             Text = text,
-            Foreground = fg ?? new SolidColorBrush(Color.FromRgb(0x5A, 0x7D, 0x95)),
+            Foreground = fg ?? new System.Windows.Media.SolidColorBrush(
+                System.Windows.Media.Color.FromRgb(0x5A, 0x7D, 0x95)),
             FontSize = 13,
             Margin = new Thickness(0, 12, 0, 0),
             TextWrapping = TextWrapping.Wrap,
@@ -1031,7 +1817,10 @@ namespace FrpManager.Views
                 _tray.HideToTray();
 
                 // Show balloon tip on first minimize
-                _tray.ShowBalloon(L("S_TrayBalloonTitle"), L("S_TrayBalloonText"));
+                if (!_settings.FrpcWasRunning)  // reuse field as "hasShownTrayTip"
+                {
+                    _tray.ShowBalloon(L("S_TrayBalloonTitle"), L("S_TrayBalloonText"));
+                }
             }
             base.OnClosing(e);
         }
@@ -1043,3 +1832,96 @@ namespace FrpManager.Views
         }
     }
 }
+```
+
+- [ ] **Step 2: Make BrushMuted and BrushSuccess public in TerminalWriter**
+
+Since `TerminalWriter.BrushMuted` and `TerminalWriter.BrushSuccess` are referenced from MainWindow, make them public:
+
+In `Views/TerminalWriter.cs`, change:
+```csharp
+        private static readonly Brush BrushInfo = ...
+        private static readonly Brush BrushWarn = ...
+        private static readonly Brush BrushError = ...
+        private static readonly Brush BrushSuccess = ...
+        private static readonly Brush BrushMuted = ...
+```
+To:
+```csharp
+        public static readonly Brush BrushInfo = ...
+        public static readonly Brush BrushWarn = ...
+        public static readonly Brush BrushError = ...
+        public static readonly Brush BrushSuccess = ...
+        public static readonly Brush BrushMuted = ...
+```
+
+- [ ] **Step 3: Verify build**
+
+Run: `cd E:/MyGitHubProject/FrpManager && dotnet build 2>&1 | tail -20`
+Expected: Build succeeded. Fix any compilation errors.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add Views/MainWindow.xaml.cs Views/TerminalWriter.cs
+git commit -m "refactor: slim MainWindow to ~540 lines, wire new services"
+```
+
+---
+
+### Task 13: Remove Terminal-related code from MainWindow (already moved to TerminalWriter)
+
+**Files:**
+- Verify: `Views/MainWindow.xaml.cs`
+
+- [ ] **Step 1: Verify TerminalButton handler still works**
+
+In the refactored MainWindow.xaml.cs, ensure there is a `Btn_ClearTerminal` handler:
+
+```csharp
+        void Btn_ClearTerminal(object s, RoutedEventArgs e)
+            => _term?.Clear();
+```
+
+If missing, add it after the GitHub download methods.
+
+- [ ] **Step 2: Verify build and fix any issues**
+
+Run: `cd E:/MyGitHubProject/FrpManager && dotnet build 2>&1 | tail -10`
+Expected: Build succeeded.
+
+- [ ] **Step 3: Commit any fixes**
+
+```bash
+git add Views/MainWindow.xaml.cs
+git commit -m "fix: ensure terminal clear button wired correctly"
+```
+
+---
+
+### Task 14: Final build, test, and polish
+
+**Files:**
+- All modified files
+
+- [ ] **Step 1: Clean and rebuild**
+
+Run: `cd E:/MyGitHubProject/FrpManager && dotnet clean && dotnet build 2>&1`
+Expected: Build succeeded, 0 errors, 0 warnings.
+
+- [ ] **Step 2: Run the app to verify it launches**
+
+Run: `cd E:/MyGitHubProject/FrpManager && dotnet run 2>&1 &`
+Expected: Window appears, tray icon visible in system tray. Close window → minimizes to tray. Tray menu items work.
+
+- [ ] **Step 3: Check file sizes**
+
+Run: `wc -l Views/MainWindow.xaml.cs Helpers/*.cs Views/TerminalWriter.cs Views/TrayIconManager.cs`
+Expected: MainWindow.xaml.cs ~540 lines, all other files <200 lines each.
+
+- [ ] **Step 4: Commit final polish**
+
+```bash
+git add -A
+git commit -m "chore: final polish, clean build verified"
+```

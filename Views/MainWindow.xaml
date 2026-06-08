@@ -694,6 +694,19 @@
                                     </Grid>
                                 </StackPanel>
                             </Border>
+                            <!-- Auto-start -->
+                            <Border Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <TextBlock Text="{DynamicResource S_AutoStartSection}" Style="{StaticResource SectionLabel}"/>
+                                    <CheckBox x:Name="ChkAutoStart" Style="{StaticResource SkyCheckBox}"
+                                              Content="{DynamicResource S_AutoStart}"
+                                              Checked="AutoStart_Changed" Unchecked="AutoStart_Changed"
+                                              Margin="0,4,0,0"/>
+                                    <TextBlock Text="{DynamicResource S_AutoStartHint}"
+                                               Foreground="{StaticResource TextMutedBrush}" FontSize="11"
+                                               Margin="20,2,0,0" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
                     </ScrollViewer>
                 </TabItem>

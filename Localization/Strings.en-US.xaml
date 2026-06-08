@@ -195,4 +195,16 @@
     <sys:String x:Key="S_SyncSecretKeyTitle">Notice</sys:String>
     <sys:String x:Key="S_SyncSelectFirst">Please select a proxy from the dropdown first</sys:String>
     <sys:String x:Key="S_SyncNoSecret">This proxy has no secretKey set</sys:String>
+    <!-- Auto-start & Tray -->
+    <sys:String x:Key="S_AutoStart">Start with Windows</sys:String>
+    <sys:String x:Key="S_AutoStartHint">When enabled, FrpManager starts automatically with Windows</sys:String>
+    <sys:String x:Key="S_TrayShow">Show Window</sys:String>
+    <sys:String x:Key="S_TrayStartFrpc">Start frpc</sys:String>
+    <sys:String x:Key="S_TrayStopFrpc">Stop frpc</sys:String>
+    <sys:String x:Key="S_TrayExit">Exit</sys:String>
+    <sys:String x:Key="S_TrayBalloonTitle">FrpManager</sys:String>
+    <sys:String x:Key="S_TrayBalloonText">Still running in background. Double-click tray icon to open.</sys:String>
+    <sys:String x:Key="S_AppErrorTitle">FrpManager Error</sys:String>
+    <sys:String x:Key="S_AppCrashTitle">FrpManager Crash</sys:String>
+    <sys:String x:Key="S_AutoStartSection">System Settings</sys:String>
 </ResourceDictionary>

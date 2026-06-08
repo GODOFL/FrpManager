@@ -53,6 +53,7 @@ namespace FrpManager.Views
         {
             _loc = loc;
             _settings = settings;
+            _busy = true; // Block events during initialization
             InitializeComponent();
 
             _term = new TerminalWriter(TerminalBox);
@@ -88,6 +89,11 @@ namespace FrpManager.Views
                 if (MainTabs.SelectedItem == TabTomlLib)
                     LoadTomlFileList();
             };
+
+            _busy = false;
+
+            // Sync initial ComboBox state that was blocked by _busy during InitializeComponent
+            SyncServerAuthUI();
         }
 
         // ══ Tray integration ════════════════════════════════════════════════
@@ -255,7 +261,7 @@ namespace FrpManager.Views
 
         void Server_FieldChanged(object s, RoutedEventArgs e)
         {
-            if (_busy) return;
+            if (_busy || !IsLoaded) return;
             if (S_Addr == null || S_Port == null || S_Token == null
                 || S_LogFile == null || S_LogLevel == null || S_StunServer == null)
                 return;
@@ -271,21 +277,34 @@ namespace FrpManager.Views
 
         void Server_AuthChanged(object s, SelectionChangedEventArgs e)
         {
-            if (_busy) return;
+            if (_busy || !IsLoaded) return;
             if (S_AuthMethod.SelectedItem is not ComboBoxItem ci) return;
             var raw = ci.Content?.ToString() ?? "";
             var method = raw.Contains("none") || raw.Contains("不认证") || raw == "none (no auth)"
                 ? "none"
                 : raw.Contains("oidc") ? "oidc" : "token";
             _server.AuthMethod = method;
-            if (TokenPanel != null)
+            TokenPanel.Visibility = method == "token"
+                ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        void SyncServerAuthUI()
+        {
+            if (S_AuthMethod.SelectedItem is ComboBoxItem ci)
+            {
+                var raw = ci.Content?.ToString() ?? "";
+                var method = raw.Contains("none") || raw.Contains("不认证") || raw == "none (no auth)"
+                    ? "none"
+                    : raw.Contains("oidc") ? "oidc" : "token";
+                _server.AuthMethod = method;
                 TokenPanel.Visibility = method == "token"
                     ? Visibility.Visible : Visibility.Collapsed;
+            }
         }
 
         void Server_CheckChanged(object s, RoutedEventArgs e)
         {
-            if (_busy) return;
+            if (_busy || !IsLoaded) return;
             _server.TlsEnable = S_Tls.IsChecked == true;
         }
 

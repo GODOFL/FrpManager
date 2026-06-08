@@ -37,6 +37,17 @@
                     </StackPanel>
                 </StackPanel>
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <!-- Auto-start toggle switch -->
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,14,0"
+                                ToolTip="{DynamicResource S_AutoStartHint}">
+                        <TextBlock Text="{DynamicResource S_AutoStart}" VerticalAlignment="Center"
+                                   Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"
+                                   Margin="0,0,6,0"/>
+                        <ToggleButton x:Name="ChkAutoStart" Style="{StaticResource ToggleSwitch}"
+                                      Checked="AutoStart_Changed" Unchecked="AutoStart_Changed"/>
+                    </StackPanel>
+                    <!-- Separator -->
+                    <Border Width="1" Height="22" Background="{StaticResource BorderBrush}" Margin="0,0,14,0"/>
                     <Button x:Name="BtnLang" Style="{StaticResource SecondaryBtn}"
                             Content="{DynamicResource S_LangBtn}"
                             Click="Btn_ToggleLang" Margin="0,0,12,0" FontFamily="Segoe UI Semibold"/>
@@ -692,19 +703,6 @@
                                         <Button Grid.Column="2" Style="{StaticResource SecondaryBtn}"
                                                 Content="{DynamicResource S_Browse}" Click="Btn_BrowseLog"/>
                                     </Grid>
-                                </StackPanel>
-                            </Border>
-                            <!-- Auto-start -->
-                            <Border Style="{StaticResource Card}">
-                                <StackPanel>
-                                    <TextBlock Text="{DynamicResource S_AutoStartSection}" Style="{StaticResource SectionLabel}"/>
-                                    <CheckBox x:Name="ChkAutoStart" Style="{StaticResource SkyCheckBox}"
-                                              Content="{DynamicResource S_AutoStart}"
-                                              Checked="AutoStart_Changed" Unchecked="AutoStart_Changed"
-                                              Margin="0,4,0,0"/>
-                                    <TextBlock Text="{DynamicResource S_AutoStartHint}"
-                                               Foreground="{StaticResource TextMutedBrush}" FontSize="11"
-                                               Margin="20,2,0,0" TextWrapping="Wrap"/>
                                 </StackPanel>
                             </Border>
                         </StackPanel>

@@ -143,7 +143,7 @@ namespace FrpManager.Views
 
         void AutoStart_Changed(object s, RoutedEventArgs e)
         {
-            if (_busy) return;
+            if (_busy || !IsLoaded) return;
             bool enabled = ChkAutoStart.IsChecked == true;
             _settings.AutoStartEnabled = enabled;
             SettingsHelper.Save(_settings);

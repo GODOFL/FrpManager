@@ -44,6 +44,7 @@
                                    Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"
                                    Margin="0,0,6,0"/>
                         <ToggleButton x:Name="ChkAutoStart" Style="{StaticResource ToggleSwitch}"
+                                      IsThreeState="False"
                                       Checked="AutoStart_Changed" Unchecked="AutoStart_Changed"/>
                     </StackPanel>
                     <!-- Separator -->

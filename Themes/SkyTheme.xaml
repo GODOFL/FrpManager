@@ -651,12 +651,12 @@
                             <Track.Thumb>
                                 <Thumb x:Name="Thumb"
                                        Background="{StaticResource TextMutedBrush}"
-                                       CornerRadius="3" Opacity="0.4"
+                                       Opacity="0.4"
                                        Cursor="Hand">
                                     <Thumb.Template>
                                         <ControlTemplate TargetType="Thumb">
                                             <Border Background="{TemplateBinding Background}"
-                                                    CornerRadius="{TemplateBinding CornerRadius}"
+                                                    CornerRadius="3"
                                                     Margin="0,2"/>
                                         </ControlTemplate>
                                     </Thumb.Template>

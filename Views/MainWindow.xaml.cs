@@ -56,6 +56,11 @@ namespace FrpManager.Views
             _busy = true; // Block events during initialization
             InitializeComponent();
 
+            // Set window icon (taskbar)
+            var iconPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app.ico");
+            if (System.IO.File.Exists(iconPath))
+                Icon = new System.Windows.Media.Imaging.BitmapImage(new Uri(iconPath));
+
             _term = new TerminalWriter(TerminalBox);
             ProxyList.ItemsSource = _proxies;
             VisitorList.ItemsSource = _visitors;

@@ -3,16 +3,16 @@
   "WorkspaceRootPath": "E:\\MyGitHubProject\\FrpManager\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{42DC2D9B-CBB1-07F4-87DB-C1D2972A814B}|FrpManager.csproj|e:\\mygithubproject\\frpmanager\\views\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{42DC2D9B-CBB1-07F4-87DB-C1D2972A814B}|FrpManager.csproj|solutionrelative:views\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{42DC2D9B-CBB1-07F4-87DB-C1D2972A814B}|FrpManager.csproj|e:\\mygithubproject\\frpmanager\\views\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{42DC2D9B-CBB1-07F4-87DB-C1D2972A814B}|FrpManager.csproj|solutionrelative:views\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{42DC2D9B-CBB1-07F4-87DB-C1D2972A814B}|FrpManager.csproj|e:\\mygithubproject\\frpmanager\\models\\models.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{42DC2D9B-CBB1-07F4-87DB-C1D2972A814B}|FrpManager.csproj|solutionrelative:models\\models.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{42DC2D9B-CBB1-07F4-87DB-C1D2972A814B}|FrpManager.csproj|e:\\mygithubproject\\frpmanager\\views\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
-      "RelativeMoniker": "D:0:0:{42DC2D9B-CBB1-07F4-87DB-C1D2972A814B}|FrpManager.csproj|solutionrelative:views\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{42DC2D9B-CBB1-07F4-87DB-C1D2972A814B}|FrpManager.csproj|e:\\mygithubproject\\frpmanager\\localization\\strings.en-us.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
@@ -38,11 +38,11 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 4,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "Models.cs",
               "DocumentMoniker": "E:\\MyGitHubProject\\FrpManager\\Models\\Models.cs",
               "RelativeDocumentMoniker": "Models\\Models.cs",
@@ -50,8 +50,7 @@
               "RelativeToolTip": "Models\\Models.cs",
               "ViewState": "AgIAAHYAAAAAAAAAAAAswIIAAAAyAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-31T04:44:41.631Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-31T04:44:41.631Z"
             },
             {
               "$type": "Document",
@@ -62,17 +61,18 @@
               "ToolTip": "E:\\MyGitHubProject\\FrpManager\\App.xaml",
               "RelativeToolTip": "App.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2026-05-28T08:53:10.614Z"
+              "WhenOpened": "2026-05-28T08:53:10.614Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "MainWindow.xaml.cs",
               "DocumentMoniker": "E:\\MyGitHubProject\\FrpManager\\Views\\MainWindow.xaml.cs",
               "RelativeDocumentMoniker": "Views\\MainWindow.xaml.cs",
               "ToolTip": "E:\\MyGitHubProject\\FrpManager\\Views\\MainWindow.xaml.cs",
               "RelativeToolTip": "Views\\MainWindow.xaml.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAuAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAApAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-05-28T08:11:01.717Z",
               "EditorCaption": ""
@@ -90,14 +90,15 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 0,
               "Title": "MainWindow.xaml",
               "DocumentMoniker": "E:\\MyGitHubProject\\FrpManager\\Views\\MainWindow.xaml",
               "RelativeDocumentMoniker": "Views\\MainWindow.xaml",
               "ToolTip": "E:\\MyGitHubProject\\FrpManager\\Views\\MainWindow.xaml",
               "RelativeToolTip": "Views\\MainWindow.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2026-05-28T08:11:54.356Z"
+              "WhenOpened": "2026-05-28T08:11:54.356Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",

@@ -207,4 +207,12 @@
     <sys:String x:Key="S_AppErrorTitle">FrpManager Error</sys:String>
     <sys:String x:Key="S_AppCrashTitle">FrpManager Crash</sys:String>
     <sys:String x:Key="S_AutoStartSection">System Settings</sys:String>
+    <!-- Config ordering -->
+    <sys:String x:Key="S_Order">Order</sys:String>
+    <sys:String x:Key="S_MoveUp">▲</sys:String>
+    <sys:String x:Key="S_MoveDown">▼</sys:String>
+    <!-- Save overwrite -->
+    <sys:String x:Key="S_SavedToFile">Saved to:</sys:String>
+    <sys:String x:Key="S_StatusSavedOverwrite">Config overwritten</sys:String>
+    <sys:String x:Key="S_FirstConfigLoaded">First config loaded</sys:String>
 </ResourceDictionary>

@@ -1,51 +1,74 @@
-﻿using System.IO;
+using System.IO;
 using System.IO.Compression;
 using System.Text.RegularExpressions;
 
 namespace FrpManager.Helpers
 {
+    /// <summary>
+    /// Handles downloading and extracting FRP release archives from GitHub.
+    /// Manages the download/ directory, ZIP extraction, version parsing,
+    /// and finding the latest downloaded frpc executable.
+    /// </summary>
     public static class DownloadHelper
     {
-        // 下载目录：软件所在目录/download/
+        /// <summary>
+        /// Download directory path: {appBaseDir}/download/
+        /// </summary>
         public static string DownloadDir =>
             Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "download");
 
-        // 从文件名解析版本号，如 frp_0.68.1_windows_amd64.zip → 0.68.1
+        /// <summary>
+        /// Extracts the semantic version from a FRP asset filename.
+        /// Example: "frp_0.68.1_windows_amd64.zip" → "0.68.1"
+        /// </summary>
+        /// <param name="assetName">The GitHub asset filename.</param>
+        /// <returns>Version string like "0.68.1", or "unknown" if parsing fails.</returns>
         public static string ParseVersion(string assetName)
         {
             var m = Regex.Match(assetName, @"(\d+\.\d+\.\d+)");
             return m.Success ? m.Groups[1].Value : "unknown";
         }
 
-        // 解压 zip，重命名为 frp-版本号，删除压缩包，返回解压目录
+        /// <summary>
+        /// Extracts a FRP ZIP archive, renames the folder to frp-{version},
+        /// and cleans up the original ZIP file.
+        /// </summary>
+        /// <param name="zipPath">Full path to the downloaded ZIP file.</param>
+        /// <param name="version">FRP version string (e.g., "0.68.1").</param>
+        /// <returns>The path to the extracted directory.</returns>
         public static string ExtractAndCleanup(string zipPath, string version)
         {
             string targetDir = Path.Combine(DownloadDir, $"frp-{version}");
 
-            // 若已存在同版本则先删除
+            // Remove existing directory for the same version (clean re-extract)
             if (Directory.Exists(targetDir))
                 Directory.Delete(targetDir, true);
 
-            // 解压到临时目录
+            // Extract to a temporary directory first
+            // The ZIP typically contains a single subfolder (e.g., "frp_0.68.1_windows_amd64/")
             string tempDir = Path.Combine(DownloadDir, "_tmp_extract");
             if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
             ZipFile.ExtractToDirectory(zipPath, tempDir);
 
-            // zip 内通常只有一个子文件夹，把它移动到目标位置
+            // Move the inner folder to the target name, or move temp if no inner folder
             var inner = Directory.GetDirectories(tempDir).FirstOrDefault();
             if (inner != null)
                 Directory.Move(inner, targetDir);
             else
                 Directory.Move(tempDir, targetDir);
 
-            // 清理临时目录和压缩包
+            // Clean up temporary directory and original ZIP
             if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
             File.Delete(zipPath);
 
             return targetDir;
         }
 
-        // 扫描 download 目录，返回最新版本的 frpc.exe 路径
+        /// <summary>
+        /// Scans the download directory for the latest version of frpc.exe.
+        /// Versions are compared semantically (e.g., 0.68.1 > 0.67.0).
+        /// </summary>
+        /// <returns>Path to the latest frpc.exe, or null if none found.</returns>
         public static string? FindLatestFrpc()
         {
             if (!Directory.Exists(DownloadDir)) return null;
@@ -61,6 +84,9 @@ namespace FrpManager.Helpers
                 .FirstOrDefault()?.Frpc;
         }
 
+        /// <summary>
+        /// Parses a directory name like "frp-0.68.1" into a Version object for comparison.
+        /// </summary>
         static Version ParseDirVersion(string dirName)
         {
             var m = Regex.Match(dirName, @"frp-(\d+\.\d+\.\d+)");

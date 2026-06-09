@@ -7,43 +7,55 @@ using Application = System.Windows.Application;
 
 namespace FrpManager
 {
+    /// <summary>
+    /// Application entry point. Handles startup initialization, localization loading,
+    /// main window creation, tray icon setup, auto-start detection, and global exception handling.
+    /// </summary>
     public partial class App : Application
     {
         private LocalizationService? _loc;
         private TrayIconManager? _tray;
 
+        /// <summary>
+        /// Called when the application starts. Initializes localization, sets up
+        /// global exception handlers, creates the main window and tray icon,
+        /// and handles auto-start silent mode.
+        /// </summary>
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
 
-            // Init localization first so error messages can be localized
+            // ── Step 1: Load settings & initialize localization ──
             var settings = SettingsHelper.Load();
             _loc = new LocalizationService();
             _loc.Initialize(settings.Language);
 
-            // Global exception handlers
+            // ── Step 2: Global exception handlers ──
+            // Catch unhandled UI thread exceptions (WPF dispatcher)
             DispatcherUnhandledException += (_, ex) =>
             {
                 MessageBox.Show(
                     _loc.Get("S_AppErrorTitle") + "：\n\n" + ex.Exception.Message,
                     "FrpManager", MessageBoxButton.OK, MessageBoxImage.Error);
-                ex.Handled = true;
+                ex.Handled = true; // Prevent app crash
             };
 
+            // Catch unhandled background thread exceptions
             AppDomain.CurrentDomain.UnhandledException += (_, ex) =>
             {
                 MessageBox.Show(ex.ExceptionObject?.ToString(),
                     _loc.Get("S_AppCrashTitle"), MessageBoxButton.OK, MessageBoxImage.Error);
             };
 
-            // Create and show main window
+            // ── Step 3: Create main window ──
             var mainWindow = new MainWindow(_loc, settings);
 
-            // Setup tray icon
+            // ── Step 4: Setup tray icon (always visible, even in silent mode) ──
             _tray = new TrayIconManager(mainWindow, _loc);
             _tray.ShowWindowRequested += () => _tray.ShowWindow();
             _tray.ExitRequested += () =>
             {
+                // Graceful shutdown: stop frpc, dispose tray, then exit
                 mainWindow.ShutdownFrpc();
                 _tray.Dispose();
                 Current.Shutdown();
@@ -51,21 +63,29 @@ namespace FrpManager
             _tray.ToggleFrpcRequested += () => mainWindow.ToggleFrpc();
             mainWindow.SetTrayIcon(_tray);
 
-            // If launched via auto-start, start minimized to tray
+            // ── Step 5: Auto-start or normal launch ──
             if (AutoStartHelper.IsAutoStartLaunch())
             {
-                mainWindow.Loaded += (_, _) =>
-                {
-                    _tray.HideToTray();
-                    // Resume frpc if it was running last session
-                    if (settings.FrpcWasRunning)
-                        mainWindow.AutoResumeFrpc();
-                };
-            }
+                // Silent background mode: hide window, show only tray icon.
+                // The tray icon is already visible from construction; HideToTray()
+                // re-asserts visibility after the window state change.
+                _tray.HideToTray();
 
-            mainWindow.Show();
+                // If frpc was running when the app last closed, auto-resume it.
+                // This picks up the first config (Order=1) as the default.
+                if (settings.FrpcWasRunning)
+                    mainWindow.AutoResumeFrpc();
+            }
+            else
+            {
+                // Normal launch: show the main window
+                mainWindow.Show();
+            }
         }
 
+        /// <summary>
+        /// Called when the application is exiting. Ensures the tray icon is properly disposed.
+        /// </summary>
         protected override void OnExit(ExitEventArgs e)
         {
             _tray?.Dispose();

@@ -130,16 +130,29 @@
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <Border Grid.Column="0" CornerRadius="5" Padding="5,2"
-                                            Margin="0,0,8,0" Background="{StaticResource AccentLightBrush}">
+                                    <!-- Order number -->
+                                    <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                                               Foreground="{StaticResource TextMutedBrush}"
+                                               FontSize="10" FontWeight="Bold" FontFamily="Consolas"
+                                               Margin="0,0,4,0" MinWidth="18" TextAlignment="Right">
+                                        <TextBlock.Text>
+                                            <Binding Path="Order" StringFormat="#{0}"/>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+                                    <!-- Type badge -->
+                                    <Border Grid.Column="1" CornerRadius="5" Padding="5,2"
+                                            Margin="0,0,6,0" Background="{StaticResource AccentLightBrush}">
                                         <TextBlock Text="{Binding TypeLabel}"
                                                    Foreground="{StaticResource AccentDarkBrush}"
                                                    FontSize="10" FontWeight="Bold" FontFamily="Consolas"/>
                                     </Border>
-                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <!-- Name + summary -->
+                                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
                                         <TextBlock Text="{Binding Name}"
                                                    Foreground="{StaticResource TextPrimaryBrush}"
                                                    FontSize="13" FontWeight="SemiBold"
@@ -149,7 +162,19 @@
                                                    FontSize="11" FontFamily="Consolas"
                                                    TextTrimming="CharacterEllipsis"/>
                                     </StackPanel>
-                                    <Button Grid.Column="2" Style="{StaticResource DangerBtn}"
+                                    <!-- Move up/down buttons -->
+                                    <StackPanel Grid.Column="3" Orientation="Vertical" Margin="0,0,2,0">
+                                        <Button Style="{StaticResource IconBtn}" Content="▲"
+                                                Tag="{Binding}" Click="Btn_MoveProxyUp"
+                                                Padding="2,1" FontSize="7"
+                                                ToolTip="{DynamicResource S_MoveUp}"/>
+                                        <Button Style="{StaticResource IconBtn}" Content="▼"
+                                                Tag="{Binding}" Click="Btn_MoveProxyDown"
+                                                Padding="2,1" FontSize="7"
+                                                ToolTip="{DynamicResource S_MoveDown}"/>
+                                    </StackPanel>
+                                    <!-- Delete button -->
+                                    <Button Grid.Column="4" Style="{StaticResource DangerBtn}"
                                             Content="✕" Tag="{Binding}" Click="Btn_DeleteProxy"/>
                                 </Grid>
                             </DataTemplate>
@@ -199,16 +224,29 @@
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <Border Grid.Column="0" CornerRadius="5" Padding="5,2"
-                                            Margin="0,0,8,0" Background="{StaticResource AccentTealLightBrush}">
+                                    <!-- Order number -->
+                                    <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                                               Foreground="{StaticResource TextMutedBrush}"
+                                               FontSize="10" FontWeight="Bold" FontFamily="Consolas"
+                                               Margin="0,0,4,0" MinWidth="18" TextAlignment="Right">
+                                        <TextBlock.Text>
+                                            <Binding Path="Order" StringFormat="#{0}"/>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+                                    <!-- Visitor type badge -->
+                                    <Border Grid.Column="1" CornerRadius="5" Padding="5,2"
+                                            Margin="0,0,6,0" Background="{StaticResource AccentTealLightBrush}">
                                         <TextBlock Text="{Binding TypeLabel}"
                                                    Foreground="{StaticResource AccentTealBrush}"
                                                    FontSize="10" FontWeight="Bold" FontFamily="Consolas"/>
                                     </Border>
-                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <!-- Name + summary -->
+                                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
                                         <TextBlock Text="{Binding Name}"
                                                    Foreground="{StaticResource TextPrimaryBrush}"
                                                    FontSize="13" FontWeight="SemiBold"
@@ -218,7 +256,19 @@
                                                    FontSize="11" FontFamily="Consolas"
                                                    TextTrimming="CharacterEllipsis"/>
                                     </StackPanel>
-                                    <Button Grid.Column="2" Style="{StaticResource DangerBtn}"
+                                    <!-- Move up/down buttons -->
+                                    <StackPanel Grid.Column="3" Orientation="Vertical" Margin="0,0,2,0">
+                                        <Button Style="{StaticResource IconBtn}" Content="▲"
+                                                Tag="{Binding}" Click="Btn_MoveVisitorUp"
+                                                Padding="2,1" FontSize="7"
+                                                ToolTip="{DynamicResource S_MoveUp}"/>
+                                        <Button Style="{StaticResource IconBtn}" Content="▼"
+                                                Tag="{Binding}" Click="Btn_MoveVisitorDown"
+                                                Padding="2,1" FontSize="7"
+                                                ToolTip="{DynamicResource S_MoveDown}"/>
+                                    </StackPanel>
+                                    <!-- Delete button -->
+                                    <Button Grid.Column="4" Style="{StaticResource DangerBtn}"
                                             Content="✕" Tag="{Binding}" Click="Btn_DeleteVisitor"/>
                                 </Grid>
                             </DataTemplate>
@@ -781,8 +831,9 @@
                                      FontSize="12.5" BorderThickness="0" Padding="14,10"
                                      IsReadOnly="True" IsDocumentEnabled="True"
                                      VerticalScrollBarVisibility="Auto"
-                                     HorizontalScrollBarVisibility="Auto">
-                            <FlowDocument PagePadding="0" PageWidth="9999">
+                                     HorizontalScrollBarVisibility="Auto"
+                                     SizeChanged="TerminalBox_SizeChanged">
+                            <FlowDocument PagePadding="0">
                                 <FlowDocument.Resources>
                                     <Style TargetType="Paragraph">
                                         <Setter Property="Margin" Value="0"/>

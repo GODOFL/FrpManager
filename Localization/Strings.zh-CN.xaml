@@ -207,4 +207,12 @@
     <sys:String x:Key="S_AppErrorTitle">FrpManager 错误</sys:String>
     <sys:String x:Key="S_AppCrashTitle">FrpManager 崩溃</sys:String>
     <sys:String x:Key="S_AutoStartSection">系统设置</sys:String>
+    <!-- Config ordering -->
+    <sys:String x:Key="S_Order">序号</sys:String>
+    <sys:String x:Key="S_MoveUp">▲</sys:String>
+    <sys:String x:Key="S_MoveDown">▼</sys:String>
+    <!-- Save overwrite -->
+    <sys:String x:Key="S_SavedToFile">已保存到：</sys:String>
+    <sys:String x:Key="S_StatusSavedOverwrite">配置已覆盖保存</sys:String>
+    <sys:String x:Key="S_FirstConfigLoaded">已加载首个配置</sys:String>
 </ResourceDictionary>

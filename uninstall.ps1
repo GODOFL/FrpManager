@@ -1,174 +1,172 @@
-# FrpManager 一键卸载脚本
-# 用法：右键 uninstall.bat → 以管理员身份运行（非必须，普通权限即可）
+# FrpManager local uninstaller.
+# Run from the published application folder. The script removes the current
+# user's auto-start entry, stops running FrpManager processes, and optionally
+# removes app files and user data after confirmation.
 
-$ErrorActionPreference = "SilentlyContinue"
-$Host.UI.RawUI.WindowTitle = "FrpManager 卸载"
-
+$ErrorActionPreference = "Stop"
 $AppName = "FrpManager"
-$RegPath = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run"
-$RegName = $AppName
-$DataDir = "$env:APPDATA\$AppName"
-
-# ── 1. 终止运行中的进程 ────────────────────────────────────────────────
-$procs = Get-Process -Name $AppName -ErrorAction SilentlyContinue
-if ($procs) {
-    Write-Host "终止 $AppName 进程..." -ForegroundColor Yellow
-    $procs | Stop-Process -Force
-    Start-Sleep -Milliseconds 500
-    Write-Host "  已终止。" -ForegroundColor Green
+$RunKeyPath = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run"
+$ScriptDir = if ($PSScriptRoot) {
+    [System.IO.Path]::GetFullPath($PSScriptRoot)
 } else {
-    Write-Host "$AppName 未在运行。" -ForegroundColor Gray
+    [System.IO.Path]::GetFullPath((Get-Location).Path)
 }
 
-# ── 2. 收集待清理项 ────────────────────────────────────────────────────
-$items = @()
-
-# 注册表自启动
-if (Test-Path "$RegPath\$RegName") {
-    $items += "注册表自启动项 (HKCU\...\Run\$RegName)"
+function Write-Step {
+    param([string]$Message)
+    Write-Host ""
+    Write-Host "== $Message ==" -ForegroundColor Cyan
 }
 
-# 配置目录
-if (Test-Path $DataDir) {
-    $items += "配置目录 ($DataDir)"
-}
-
-# 尝试推断安装目录
-$installDir = $null
-# 方法1：从注册表自启动项读取路径
-$regValue = Get-ItemProperty -Path $RegPath -Name $RegName -ErrorAction SilentlyContinue
-if ($regValue -and $regValue.$RegName) {
-    $exePath = $regValue.$RegName -replace '"', ''
-    $dir = Split-Path $exePath -Parent
-    if (Test-Path $dir) {
-        $installDir = $dir
-    }
-}
-# 方法2：从运行中进程获取
-if (-not $installDir) {
-    try {
-        $procPath = (Get-CimInstance Win32_Process -Filter "name='$AppName.exe'" -ErrorAction SilentlyContinue | Select-Object -First 1).ExecutablePath
-        if ($procPath) {
-            $installDir = Split-Path $procPath -Parent
-        }
-    } catch { }
-}
-# 方法3：常见目录
-if (-not $installDir) {
-    $commonDirs = @(
-        "$env:LOCALAPPDATA\Programs\$AppName",
-        "$env:ProgramFiles\$AppName",
-        "${env:ProgramFiles(x86)}\$AppName",
-        "$env:USERPROFILE\Desktop\$AppName"
+function Confirm-Action {
+    param(
+        [string]$Question,
+        [bool]$DefaultYes = $false
     )
-    foreach ($d in $commonDirs) {
-        if (Test-Path $d) {
-            $installDir = $d
-            break
+
+    $suffix = if ($DefaultYes) { "[Y/n]" } else { "[y/N]" }
+    while ($true) {
+        $answer = Read-Host "$Question $suffix"
+        if ([string]::IsNullOrWhiteSpace($answer)) {
+            return $DefaultYes
+        }
+
+        switch ($answer.Trim().ToLowerInvariant()) {
+            "y" { return $true }
+            "yes" { return $true }
+            "n" { return $false }
+            "no" { return $false }
+            default { Write-Host "Please answer y or n." -ForegroundColor Yellow }
         }
     }
 }
 
-if ($installDir -and (Test-Path $installDir)) {
-    $items += "安装目录 ($installDir)"
-}
+function Test-SafeInstallDirectory {
+    param([string]$Path)
 
-# ── 3. 若无可清理项则直接退出 ──────────────────────────────────────────
-if ($items.Count -eq 0) {
-    Write-Host "`n未发现任何 FrpManager 相关项，无需清理。" -ForegroundColor Green
-    Write-Host "按任意键退出..." -ForegroundColor Gray
-    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
-    exit 0
-}
-
-# ── 4. 确认 ────────────────────────────────────────────────────────────
-Write-Host "`n========== 将清理以下内容 ==========" -ForegroundColor Cyan
-foreach ($item in $items) {
-    Write-Host "  • $item" -ForegroundColor White
-}
-Write-Host "====================================" -ForegroundColor Cyan
-
-$shell = New-Object -ComObject WScript.Shell
-$result = $shell.Popup(
-    "确定要卸载 FrpManager 吗？`n`n将删除以上列出的所有内容。",
-    0,
-    "FrpManager 卸载确认",
-    1 + 48  # OK+Cancel + Warning icon
-)
-
-if ($result -ne 1) {
-    Write-Host "`n已取消。" -ForegroundColor Gray
-    exit 0
-}
-
-# ── 5. 执行清理 ────────────────────────────────────────────────────────
-$removed = @()
-$failed = @()
-
-Write-Host "`n正在清理..." -ForegroundColor Yellow
-
-# 5a. 删除注册表自启动
-if (Test-Path "$RegPath\$RegName") {
-    try {
-        Remove-ItemProperty -Path $RegPath -Name $RegName -Force -ErrorAction Stop
-        $removed += "注册表自启动项"
-        Write-Host "  ✓ 已删除注册表自启动项" -ForegroundColor Green
-    } catch {
-        $failed += "注册表自启动项 ($($_.Exception.Message))"
-        Write-Host "  ✗ 删除注册表失败: $_" -ForegroundColor Red
+    if ([string]::IsNullOrWhiteSpace($Path) -or -not (Test-Path -LiteralPath $Path -PathType Container)) {
+        return $false
     }
-}
 
-# 5b. 删除配置目录
-if (Test-Path $DataDir) {
-    try {
-        Remove-Item -Path $DataDir -Recurse -Force -ErrorAction Stop
-        $removed += "配置目录"
-        Write-Host "  ✓ 已删除配置目录" -ForegroundColor Green
-    } catch {
-        $failed += "配置目录 ($($_.Exception.Message))"
-        Write-Host "  ✗ 删除配置目录失败: $_" -ForegroundColor Red
+    $full = [System.IO.Path]::GetFullPath($Path).TrimEnd('\')
+    $root = [System.IO.Path]::GetPathRoot($full).TrimEnd('\')
+    if ($full -eq $root) {
+        return $false
     }
+
+    $exe = Join-Path $full "$AppName.exe"
+    $script = Join-Path $full "uninstall.ps1"
+    return (Test-Path -LiteralPath $exe -PathType Leaf) -and
+           (Test-Path -LiteralPath $script -PathType Leaf)
 }
 
-# 5c. 删除安装目录
-if ($installDir -and (Test-Path $installDir)) {
-    $shell = New-Object -ComObject WScript.Shell
-    $result = $shell.Popup(
-        "是否同时删除安装目录？`n`n$installDir`n`n注意：如果该目录中包含其他文件，它们也将被删除。",
-        0,
-        "删除安装目录？",
-        1 + 48
+function Remove-PathIfExists {
+    param(
+        [string]$Path,
+        [string]$Label
     )
-    if ($result -eq 1) {
+
+    if (-not (Test-Path -LiteralPath $Path)) {
+        Write-Host "Skip ${Label}: not found" -ForegroundColor DarkGray
+        return
+    }
+
+    try {
+        Remove-Item -LiteralPath $Path -Recurse -Force
+        Write-Host "Removed ${Label}: $Path" -ForegroundColor Green
+    } catch {
+        Write-Host "Failed to remove ${Label}: $($_.Exception.Message)" -ForegroundColor Red
+    }
+}
+
+function Start-DelayedInstallDirRemoval {
+    param([string]$InstallDir)
+
+    $tempCmd = Join-Path $env:TEMP ("FrpManager-uninstall-{0}.cmd" -f ([guid]::NewGuid().ToString("N")))
+    $escapedInstallDir = $InstallDir.Replace('"', '""')
+    $cmd = @"
+@echo off
+ping 127.0.0.1 -n 3 >nul
+rmdir /s /q "$escapedInstallDir"
+del "%~f0" >nul 2>nul
+"@
+
+    Set-Content -LiteralPath $tempCmd -Value $cmd -Encoding ASCII
+    Start-Process -FilePath "cmd.exe" -ArgumentList "/c `"$tempCmd`"" -WindowStyle Hidden
+    Write-Host "Scheduled install directory removal: $InstallDir" -ForegroundColor Green
+}
+
+Write-Host "FrpManager Uninstaller" -ForegroundColor Cyan
+Write-Host "Script directory: $ScriptDir"
+
+Write-Step "Stopping running processes"
+$processes = Get-Process -Name $AppName -ErrorAction SilentlyContinue
+if ($processes) {
+    foreach ($process in $processes) {
         try {
-            Remove-Item -Path $installDir -Recurse -Force -ErrorAction Stop
-            $removed += "安装目录"
-            Write-Host "  ✓ 已删除安装目录" -ForegroundColor Green
+            Stop-Process -Id $process.Id -Force
+            Write-Host "Stopped $AppName process: PID $($process.Id)" -ForegroundColor Green
         } catch {
-            $failed += "安装目录 ($($_.Exception.Message))"
-            Write-Host "  ✗ 删除安装目录失败: $_" -ForegroundColor Red
+            Write-Host "Failed to stop PID $($process.Id): $($_.Exception.Message)" -ForegroundColor Red
+        }
+    }
+    Start-Sleep -Milliseconds 500
+} else {
+    Write-Host "No running $AppName process found." -ForegroundColor DarkGray
+}
+
+Write-Step "Removing auto-start entry"
+try {
+    $runValue = Get-ItemProperty -Path $RunKeyPath -Name $AppName -ErrorAction SilentlyContinue
+    if ($runValue) {
+        Remove-ItemProperty -Path $RunKeyPath -Name $AppName -Force
+        Write-Host "Removed HKCU Run entry: $AppName" -ForegroundColor Green
+    } else {
+        Write-Host "No HKCU Run entry found." -ForegroundColor DarkGray
+    }
+} catch {
+    Write-Host "Failed to remove HKCU Run entry: $($_.Exception.Message)" -ForegroundColor Red
+}
+
+$userDataDirs = @(
+    (Join-Path $env:APPDATA $AppName),
+    (Join-Path $env:LOCALAPPDATA $AppName)
+) | Select-Object -Unique
+
+Write-Step "User data"
+$existingDataDirs = $userDataDirs | Where-Object { Test-Path -LiteralPath $_ }
+if ($existingDataDirs.Count -gt 0) {
+    Write-Host "Found user data directories:"
+    foreach ($dir in $existingDataDirs) {
+        Write-Host "  $dir"
+    }
+
+    if (Confirm-Action "Remove user data and saved settings?" $false) {
+        foreach ($dir in $existingDataDirs) {
+            Remove-PathIfExists -Path $dir -Label "user data"
         }
     } else {
-        Write-Host "  - 已跳过安装目录" -ForegroundColor Gray
+        Write-Host "User data kept." -ForegroundColor Yellow
     }
+} else {
+    Write-Host "No user data directory found." -ForegroundColor DarkGray
 }
 
-# ── 6. 结果 ────────────────────────────────────────────────────────────
-Write-Host "`n========== 卸载完成 ==========" -ForegroundColor Cyan
-if ($removed.Count -gt 0) {
-    Write-Host "  已清理：" -ForegroundColor Green
-    foreach ($r in $removed) {
-        Write-Host "    ✓ $r" -ForegroundColor Green
+Write-Step "Application files"
+if (Test-SafeInstallDirectory -Path $ScriptDir) {
+    Write-Host "Install directory:"
+    Write-Host "  $ScriptDir"
+    if (Confirm-Action "Remove application files in this directory?" $true) {
+        Set-Location $env:TEMP
+        Start-DelayedInstallDirRemoval -InstallDir $ScriptDir
+    } else {
+        Write-Host "Application files kept." -ForegroundColor Yellow
     }
+} else {
+    Write-Host "Current directory does not look like a FrpManager install folder; skipped app file removal." -ForegroundColor Yellow
 }
-if ($failed.Count -gt 0) {
-    Write-Host "  失败：" -ForegroundColor Red
-    foreach ($f in $failed) {
-        Write-Host "    ✗ $f" -ForegroundColor Red
-    }
-}
-Write-Host "==============================" -ForegroundColor Cyan
 
-Write-Host "`n按任意键退出..." -ForegroundColor Gray
+Write-Host ""
+Write-Host "Uninstall steps completed." -ForegroundColor Cyan
+Write-Host "Press any key to exit..."
 $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")

@@ -13,8 +13,25 @@ namespace FrpManager
     /// </summary>
     public partial class App : Application
     {
+        /// <summary>
+        /// Static constructor: ensures WinForms infrastructure is initialized before
+        /// any WinForms components (like NotifyIcon) are created.
+        /// This is needed because the auto-generated Main() from App.xaml does not
+        /// call ApplicationConfiguration.Initialize() even with UseWindowsForms=true.
+        /// </summary>
+        static App()
+        {
+            // Initialize WinForms for tray icon support.
+            // EnableVisualStyles + SetCompatibleTextRenderingDefault are safe to
+            // call here (before WPF Application base constructor runs).
+            // We skip SetHighDpiMode because WPF handles DPI itself.
+            System.Windows.Forms.Application.EnableVisualStyles();
+            System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(false);
+        }
         private LocalizationService? _loc;
         private TrayIconManager? _tray;
+        private SingleInstanceGuard? _singleInstance;
+        private bool _isShuttingDown;
 
         /// <summary>
         /// Called when the application starts. Initializes localization, sets up
@@ -25,6 +42,15 @@ namespace FrpManager
         {
             base.OnStartup(e);
 
+            // Take the mutex before creating windows or tray state. If another
+            // FrpManager instance is already running, this process exits quietly.
+            _singleInstance = SingleInstanceGuard.TryAcquire();
+            if (_singleInstance == null)
+            {
+                Shutdown(0);
+                return;
+            }
+
             // ── Step 1: Load settings & initialize localization ──
             var settings = SettingsHelper.Load();
             _loc = new LocalizationService();
@@ -34,8 +60,16 @@ namespace FrpManager
             // Catch unhandled UI thread exceptions (WPF dispatcher)
             DispatcherUnhandledException += (_, ex) =>
             {
+                if (_isShuttingDown)
+                {
+                    ex.Handled = true;
+                    return;
+                }
+                var message = ex.Exception.Message;
+                if (string.IsNullOrWhiteSpace(message))
+                    message = ex.Exception.GetType().Name;
                 MessageBox.Show(
-                    _loc.Get("S_AppErrorTitle") + "：\n\n" + ex.Exception.Message,
+                    _loc.Get("S_AppErrorTitle") + ":\n\n" + message,
                     "FrpManager", MessageBoxButton.OK, MessageBoxImage.Error);
                 ex.Handled = true; // Prevent app crash
             };
@@ -55,10 +89,22 @@ namespace FrpManager
             _tray.ShowWindowRequested += () => _tray.ShowWindow();
             _tray.ExitRequested += () =>
             {
-                // Graceful shutdown: stop frpc, dispose tray, then exit
-                mainWindow.ShutdownFrpc();
-                _tray.Dispose();
-                Current.Shutdown();
+                Current.Dispatcher.BeginInvoke(
+                    System.Windows.Threading.DispatcherPriority.Background,
+                    async () =>
+                    {
+                        if (_isShuttingDown) return;
+                        _isShuttingDown = true;
+                        try
+                        {
+                            await mainWindow.ShutdownForExitAsync();
+                        }
+                        finally
+                        {
+                            _tray?.Dispose();
+                            Current.Shutdown();
+                        }
+                    });
             };
             _tray.ToggleFrpcRequested += () => mainWindow.ToggleFrpc();
             mainWindow.SetTrayIcon(_tray);
@@ -72,7 +118,7 @@ namespace FrpManager
                 _tray.HideToTray();
 
                 // If frpc was running when the app last closed, auto-resume it.
-                // This picks up the first config (Order=1) as the default.
+                // This picks up the first TOML library entry as the default.
                 if (settings.FrpcWasRunning)
                     mainWindow.AutoResumeFrpc();
             }
@@ -89,6 +135,7 @@ namespace FrpManager
         protected override void OnExit(ExitEventArgs e)
         {
             _tray?.Dispose();
+            _singleInstance?.Dispose();
             base.OnExit(e);
         }
     }

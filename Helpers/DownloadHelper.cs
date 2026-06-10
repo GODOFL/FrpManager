@@ -13,9 +13,10 @@ namespace FrpManager.Helpers
     {
         /// <summary>
         /// Download directory path: {appBaseDir}/download/
+        /// Uses AppDirHelper to correctly resolve the path even for
+        /// single-file published apps (avoids temp extraction dir on C:\).
         /// </summary>
-        public static string DownloadDir =>
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "download");
+        public static string DownloadDir => AppDirHelper.DownloadDir;
 
         /// <summary>
         /// Extracts the semantic version from a FRP asset filename.

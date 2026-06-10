@@ -10,16 +10,6 @@ namespace FrpManager.Models
     /// </summary>
     public enum ProxyType { tcp, udp, http, https, stcp, xtcp, sudp }
 
-    // ── Orderable item interface ──────────────────────────────────────────
-    /// <summary>
-    /// Implemented by config items that support user-defined ordering.
-    /// Enables type-safe reordering without reflection in MoveItemUp/Down.
-    /// </summary>
-    public interface IOrderedItem
-    {
-        int Order { get; set; }
-    }
-
     // ── Server ────────────────────────────────────────────────────────────
     /// <summary>
     /// Represents the frpc server connection configuration.
@@ -67,9 +57,8 @@ namespace FrpManager.Models
     /// Represents a single FRP proxy rule ([[proxies]] section in frpc.toml).
     /// Supports all FRP proxy types: tcp, udp, http, https, stcp, xtcp, sudp.
     /// </summary>
-    public class ProxyConfig : INotifyPropertyChanged, IOrderedItem
+    public class ProxyConfig : INotifyPropertyChanged
     {
-        private int _order;
         private string _name = "new-proxy";
         private ProxyType _type = ProxyType.tcp;
         private string _localIp = "127.0.0.1";
@@ -81,8 +70,6 @@ namespace FrpManager.Models
         private bool _encrypt = false;
         private bool _compress = false;
 
-        /// <summary>Display order in the config list (1-based). Lower = first.</summary>
-        public int Order { get => _order; set => Set(ref _order, value); }
         /// <summary>Proxy name (unique identifier).</summary>
         public string Name { get => _name; set => Set(ref _name, value); }
         /// <summary>Proxy type: tcp, udp, http, https, stcp, xtcp, sudp.</summary>
@@ -141,9 +128,8 @@ namespace FrpManager.Models
     /// Represents a FRP visitor rule ([[visitors]] section in frpc.toml).
     /// Visitors are the client-side counterparts of STCP/XTCP/SUDP proxies.
     /// </summary>
-    public class VisitorConfig : INotifyPropertyChanged, IOrderedItem
+    public class VisitorConfig : INotifyPropertyChanged
     {
-        private int _order;
         private string _name = "new-visitor";
         private ProxyType _type = ProxyType.stcp;
         private string _serverName = "";
@@ -155,8 +141,6 @@ namespace FrpManager.Models
         private string _fallbackTo = "";
         private int _fallbackTimeoutMs = 200;
 
-        /// <summary>Display order in the config list (1-based). Lower = first.</summary>
-        public int Order { get => _order; set => Set(ref _order, value); }
         /// <summary>Visitor name (unique identifier).</summary>
         public string Name { get => _name; set => Set(ref _name, value); }
         /// <summary>Visitor type: stcp, xtcp, sudp.</summary>
@@ -178,8 +162,8 @@ namespace FrpManager.Models
         /// <summary>Timeout in ms before falling back to STCP.</summary>
         public int FallbackTimeoutMs { get => _fallbackTimeoutMs; set => Set(ref _fallbackTimeoutMs, value); }
 
-        /// <summary>Badge label for visitor identification in lists.</summary>
-        public string TypeLabel => "[vis]";
+        /// <summary>Badge label for visitor identification in lists — shows type like STCP/XTCP/SUDP.</summary>
+        public string TypeLabel => _type.ToString().ToUpperInvariant();
 
         /// <summary>One-line summary displayed in the visitor list.</summary>
         public string Summary => string.IsNullOrWhiteSpace(_serverName)
@@ -226,6 +210,9 @@ namespace FrpManager.Models
 
         /// <summary>Last saved/loaded TOML file path for direct overwrite on Save.</summary>
         public string? LastSavedFilePath { get; set; }
+
+        /// <summary>User-defined TOML library order. The first existing file is used for auto-start.</summary>
+        public List<string> TomlFileOrder { get; set; } = new();
     }
 
     // ── GitHub ────────────────────────────────────────────────────────────

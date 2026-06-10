@@ -18,6 +18,7 @@ namespace FrpManager.Views
         private readonly System.Windows.Forms.ToolStripMenuItem _itemExit;
         private readonly Window _owner;
         private readonly LocalizationService _loc;
+        private readonly System.Windows.Threading.DispatcherTimer? _retryTimer;
         private bool _frpcRunning;
         private bool _disposed;
 
@@ -33,6 +34,8 @@ namespace FrpManager.Views
         /// <summary>
         /// Creates the tray icon manager and initializes the system tray icon.
         /// The icon is immediately visible after construction.
+        /// Includes a startup retry timer to handle cases where the taskbar
+        /// notification area isn't ready yet (e.g., during Windows auto-start).
         /// </summary>
         /// <param name="owner">The main window to control show/hide for.</param>
         /// <param name="loc">Localization service for menu text.</param>
@@ -72,13 +75,21 @@ namespace FrpManager.Views
             _menu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
             _menu.Items.Add(_itemExit);
 
-            // ── Load app icon ──
-            var iconPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app.ico");
-            var appIcon = System.IO.File.Exists(iconPath)
-                ? new System.Drawing.Icon(iconPath)
-                : System.Drawing.SystemIcons.Application; // Fallback to system icon
+            // ── Load app icon (with fallback chain) ──
+            System.Drawing.Icon? appIcon = null;
+            var iconPath = AppDirHelper.AppIconPath;
+            try
+            {
+                if (System.IO.File.Exists(iconPath))
+                    appIcon = new System.Drawing.Icon(iconPath);
+            }
+            catch
+            {
+                // Icon file corrupt or unreadable — fall through to fallback
+            }
+            appIcon ??= System.Drawing.SystemIcons.Application;
 
-            // ── Create and show tray icon ──
+            // ── Create tray icon ──
             _icon = new System.Windows.Forms.NotifyIcon
             {
                 Icon = appIcon,
@@ -93,9 +104,30 @@ namespace FrpManager.Views
             // Set initial menu labels
             RefreshLabels();
 
-            // Force icon visibility — some Windows versions need a re-assert
-            // after construction to ensure it appears in the notification area
-            _icon.Visible = true;
+            // ── Startup retry timer ──
+            // During Windows auto-start, the taskbar notification area may not
+            // be ready yet. This timer re-asserts icon visibility every 3 seconds
+            // for the first ~15 seconds to handle the timing issue.
+            int retryCount = 0;
+            _retryTimer = new System.Windows.Threading.DispatcherTimer(
+                System.Windows.Threading.DispatcherPriority.Background,
+                _owner.Dispatcher)
+            {
+                Interval = TimeSpan.FromSeconds(3)
+            };
+            _retryTimer.Tick += (_, _) =>
+            {
+                retryCount++;
+                if (retryCount > 5)
+                {
+                    _retryTimer.Stop();
+                    return;
+                }
+                // Toggle visibility to force re-registration with Shell_NotifyIcon
+                _icon.Visible = false;
+                _icon.Visible = true;
+            };
+            _retryTimer.Start();
         }
 
         /// <summary>
@@ -132,7 +164,8 @@ namespace FrpManager.Views
         /// <summary>
         /// Hides the main window and shows only the tray icon.
         /// Sets the window to minimized state and removes it from the taskbar.
-        /// Re-asserts tray icon visibility to ensure it appears reliably.
+        /// Toggles tray icon visibility to force re-registration with the
+        /// notification area in case the taskbar was restarted.
         /// </summary>
         public void HideToTray()
         {
@@ -140,9 +173,10 @@ namespace FrpManager.Views
             _owner.ShowInTaskbar = false;
             _owner.Hide();
 
-            // Re-assert icon visibility after window state changes.
-            // On some Windows versions, hiding the window can cause the tray icon
-            // to be hidden as well. This ensures the icon stays visible.
+            // Toggle visibility to force Shell_NotifyIcon re-registration.
+            // This handles cases where the taskbar was restarted while the
+            // app was running, which would otherwise cause the icon to vanish.
+            _icon.Visible = false;
             _icon.Visible = true;
         }
 
@@ -181,10 +215,13 @@ namespace FrpManager.Views
             if (_disposed) return;
             _disposed = true;
 
+            _retryTimer?.Stop();
             _loc.LanguageChanged -= RefreshLabels;
             _icon.Visible = false;
             _icon.Dispose();
-            _menu.Dispose();
+            // Dispose menu safely — may still be in use if exit was triggered
+            // from a menu item click (deferred by caller via BeginInvoke)
+            try { _menu.Dispose(); } catch { /* Already disposed or in use */ }
         }
     }
 }

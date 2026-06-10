@@ -13,11 +13,11 @@ namespace FrpManager.Helpers
         // ── frpc.toml Generation ──────────────────────────────────────────────
         /// <summary>
         /// Generates the complete frpc.toml content from server config, proxy list, and visitor list.
-        /// Items are sorted by their Order property before generation.
+        /// Items maintain their current collection order.
         /// </summary>
         /// <param name="s">Server connection configuration.</param>
-        /// <param name="proxies">Collection of proxy rules. Will be sorted by Order.</param>
-        /// <param name="visitors">Collection of visitor rules. Will be sorted by Order.</param>
+        /// <param name="proxies">Collection of proxy rules. Keeps the incoming order.</param>
+        /// <param name="visitors">Collection of visitor rules. Keeps the incoming order.</param>
         /// <returns>Full frpc.toml content as a string.</returns>
         public static string GenerateFrpcToml(
             ServerConfig s,
@@ -60,8 +60,8 @@ namespace FrpManager.Helpers
                 sb.AppendLine("enable = true");
             }
 
-            // ── Proxies (sorted by Order, then by name as tiebreaker) ──
-            foreach (var p in proxies.OrderBy(p => p.Order).ThenBy(p => p.Name))
+            // ── Proxies (maintained in their current order) ──
+            foreach (var p in proxies)
             {
                 sb.AppendLine();
                 sb.AppendLine("[[proxies]]");
@@ -100,8 +100,8 @@ namespace FrpManager.Helpers
                 }
             }
 
-            // ── Visitors (sorted by Order, then by name as tiebreaker) ──
-            foreach (var v in visitors.OrderBy(v => v.Order).ThenBy(v => v.Name))
+            // ── Visitors (maintained in their current order) ──
+            foreach (var v in visitors)
             {
                 sb.AppendLine();
                 sb.AppendLine("[[visitors]]");
@@ -178,8 +178,8 @@ namespace FrpManager.Helpers
         /// and missing serverName references for visitors.
         /// </summary>
         /// <param name="s">Server configuration to validate.</param>
-        /// <param name="proxies">Proxy configurations sorted by Order.</param>
-        /// <param name="visitors">Visitor configurations sorted by Order.</param>
+        /// <param name="proxies">Proxy configurations.</param>
+        /// <param name="visitors">Visitor configurations.</param>
         /// <param name="noMatchMsg">Message shown when a visitor references an unknown proxy.</param>
         /// <returns>A tuple: (valid, list of error messages).</returns>
         public static (bool Valid, List<string> Errors) Validate(
@@ -189,8 +189,8 @@ namespace FrpManager.Helpers
             string noMatchMsg = "No matching STCP/XTCP/SUDP proxy found")
         {
             var errs = new List<string>();
-            var proxyList = proxies.OrderBy(p => p.Order).ToList();
-            var visitorList = visitors.OrderBy(v => v.Order).ToList();
+            var proxyList = proxies.ToList();
+            var visitorList = visitors.ToList();
 
             // ── Validate server ──
             if (string.IsNullOrWhiteSpace(s.ServerAddr))

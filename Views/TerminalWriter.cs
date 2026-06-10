@@ -82,9 +82,16 @@ namespace FrpManager.Views
         {
             // Create a new Paragraph for this line — the RichTextBox will
             // automatically wrap long lines based on its actual viewport width
-            var para = new Paragraph(new Run(text)) { Foreground = brush };
-
-            _box.Document.Blocks.Add(para);
+            text = text.Replace("\r\n", "\n").Replace('\r', '\n');
+            foreach (var line in text.Split('\n'))
+            {
+                var para = new Paragraph(new Run(line))
+                {
+                    Foreground = brush,
+                    Margin = new System.Windows.Thickness(0)
+                };
+                _box.Document.Blocks.Add(para);
+            }
             _box.ScrollToEnd();
 
             // Trim oldest lines to prevent unbounded memory growth

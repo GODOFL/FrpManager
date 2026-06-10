@@ -70,7 +70,7 @@ namespace FrpManager.Helpers
             var dirs = new List<string>
             {
                 Environment.CurrentDirectory,
-                AppDomain.CurrentDomain.BaseDirectory,
+                AppDirHelper.BaseDirectory,
                 Path.Combine(Environment.GetFolderPath(
                     Environment.SpecialFolder.UserProfile), "Downloads"),
                 Path.Combine(Environment.GetFolderPath(

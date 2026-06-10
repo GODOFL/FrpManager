@@ -45,6 +45,7 @@ namespace FrpManager.Views
         private ProxyConfig? _curProxy;
         private VisitorConfig? _curVisitor;
         private bool _busy; // Guards against event handlers firing during programmatic UI updates
+        private bool _allowClose;
 
         private readonly FrpcProcessManager _frpc = new();
         private TerminalWriter? _term;
@@ -73,7 +74,7 @@ namespace FrpManager.Views
             InitializeComponent();
 
             // ── Set window icon (taskbar) ──
-            var iconPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app.ico");
+            var iconPath = AppDirHelper.AppIconPath;
             if (System.IO.File.Exists(iconPath))
                 Icon = new System.Windows.Media.Imaging.BitmapImage(new Uri(iconPath));
 
@@ -138,13 +139,16 @@ namespace FrpManager.Views
         /// Gracefully shuts down the frpc process on a background thread.
         /// This is called before app exit to clean up the running frpc instance.
         /// </summary>
-        public void ShutdownFrpc()
+        public async Task ShutdownForExitAsync()
         {
             // Offload to background thread to avoid deadlocking the UI thread
             // (Stop() → Kill() → Dispose() waits for Exited event, whose handler
             //  uses Dispatcher.BeginInvoke — safe now, but Task.Run avoids any
             //  chance of blocking the UI)
-            _ = Task.Run(() => _frpc.Stop());
+            _allowClose = true;
+            _settings.FrpcWasRunning = false;
+            SettingsHelper.Save(_settings);
+            await Task.Run(() => _frpc.Stop());
         }
 
         /// <summary>Toggles frpc start/stop (called from tray menu).</summary>
@@ -152,24 +156,30 @@ namespace FrpManager.Views
 
         /// <summary>
         /// Auto-resumes frpc on system startup (silent mode).
-        /// The first config (Order=1) becomes the default selected config.
+        /// Loads the first config file (sorted by name) from the TOML library,
+        /// then starts frpc with the loaded configuration.
         /// </summary>
         public void AutoResumeFrpc()
         {
             if (!string.IsNullOrWhiteSpace(_settings.FrpcPath)
                 && File.Exists(_settings.FrpcPath))
             {
-                Btn_Start(this, new RoutedEventArgs());
-
-                // ── Select the first config (Order=1) as default ──
-                // This ensures the primary config is highlighted in the editor
-                // when the app starts silently in the background.
-                if (_proxies.Count > 0)
+                // ── Load the first config file from the TOML library ──
+                string tomlDir = AppDirHelper.TomlsetDir;
+                if (Directory.Exists(tomlDir))
                 {
-                    var firstProxy = _proxies.OrderBy(p => p.Order).First();
-                    ProxyList.SelectedItem = firstProxy;
-                    SetStatus(L("S_FirstConfigLoaded") + ": " + firstProxy.Name);
+                    var firstToml = GetOrderedTomlFiles(tomlDir).FirstOrDefault();
+                    if (firstToml != null)
+                    {
+                        LoadTomlFile(firstToml);
+                        _lastFilePath = firstToml;
+                        _settings.LastSavedFilePath = firstToml;
+                        SettingsHelper.Save(_settings);
+                        SetStatus(L("S_FirstConfigLoaded") + ": " + Path.GetFileName(firstToml));
+                    }
                 }
+
+                Btn_Start(this, new RoutedEventArgs());
             }
         }
 
@@ -420,14 +430,12 @@ namespace FrpManager.Views
 
         /// <summary>
         /// Adds a new proxy config to the list and selects it for editing.
-        /// Automatically assigns the next available Order number.
         /// </summary>
         void Btn_AddProxy(object s, RoutedEventArgs e)
         {
             var p = new ProxyConfig
             {
-                Name = $"proxy-{_proxies.Count + 1}",
-                Order = _proxies.Count + 1 // Assign next order number
+                Name = $"proxy-{_proxies.Count + 1}"
             };
             _proxies.Add(p);
             VisitorList.SelectedItem = null;
@@ -442,7 +450,6 @@ namespace FrpManager.Views
             {
                 _proxies.Remove(p);
                 if (_curProxy == p) { _curProxy = null; ShowEditor(EditorMode.None); }
-                RenumberProxies(); // Re-number remaining items
                 UpdateCounts();
                 SetStatus(L("S_DeletedProxy") + p.Name);
             }
@@ -534,14 +541,12 @@ namespace FrpManager.Views
 
         /// <summary>
         /// Adds a new visitor config to the list and selects it for editing.
-        /// Automatically assigns the next available Order number.
         /// </summary>
         void Btn_AddVisitor(object s, RoutedEventArgs e)
         {
             var v = new VisitorConfig
             {
-                Name = $"visitor-{_visitors.Count + 1}",
-                Order = _visitors.Count + 1 // Assign next order number
+                Name = $"visitor-{_visitors.Count + 1}"
             };
             _visitors.Add(v);
             ProxyList.SelectedItem = null;
@@ -556,7 +561,6 @@ namespace FrpManager.Views
             {
                 _visitors.Remove(v);
                 if (_curVisitor == v) { _curVisitor = null; ShowEditor(EditorMode.None); }
-                RenumberVisitors(); // Re-number remaining items
                 UpdateCounts();
                 SetStatus(L("S_DeletedVisitor") + v.Name);
             }
@@ -638,122 +642,6 @@ namespace FrpManager.Views
                 ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        // ══ Config Reordering ─═══════════════════════════════════════════════
-
-        /// <summary>Moves a proxy up in the list (decreases its Order number).</summary>
-        void Btn_MoveProxyUp(object s, RoutedEventArgs e)
-        {
-            if (s is Button b && b.Tag is ProxyConfig target)
-                MoveItemUp(_proxies, target, () => RenumberProxies());
-        }
-
-        /// <summary>Moves a proxy down in the list (increases its Order number).</summary>
-        void Btn_MoveProxyDown(object s, RoutedEventArgs e)
-        {
-            if (s is Button b && b.Tag is ProxyConfig target)
-                MoveItemDown(_proxies, target, () => RenumberProxies());
-        }
-
-        /// <summary>Moves a visitor up in the list (decreases its Order number).</summary>
-        void Btn_MoveVisitorUp(object s, RoutedEventArgs e)
-        {
-            if (s is Button b && b.Tag is VisitorConfig target)
-                MoveItemUp(_visitors, target, () => RenumberVisitors());
-        }
-
-        /// <summary>Moves a visitor down in the list (increases its Order number).</summary>
-        void Btn_MoveVisitorDown(object s, RoutedEventArgs e)
-        {
-            if (s is Button b && b.Tag is VisitorConfig target)
-                MoveItemDown(_visitors, target, () => RenumberVisitors());
-        }
-
-        /// <summary>
-        /// Generic move-up: swaps the target item's Order with the item immediately before it.
-        /// Uses the IOrderedItem interface for type-safe access (no reflection).
-        /// </summary>
-        /// <typeparam name="T">Item type implementing IOrderedItem.</typeparam>
-        /// <param name="collection">The ObservableCollection containing the items.</param>
-        /// <param name="target">The item to move up.</param>
-        /// <param name="renumber">Callback to renumber and refresh after the swap.</param>
-        void MoveItemUp<T>(ObservableCollection<T> collection, T target, Action renumber)
-            where T : class, IOrderedItem
-        {
-            // Sort items by current Order to find neighbors
-            var sorted = collection.OrderBy(item => item.Order).ToList();
-            int idx = sorted.IndexOf(target);
-            if (idx <= 0) return; // Already at the top — can't move up
-
-            // Swap Order values with the previous item
-            var prev = sorted[idx - 1];
-            (prev.Order, target.Order) = (target.Order, prev.Order);
-
-            renumber(); // Re-number all items to keep Order values clean (1,2,3...)
-        }
-
-        /// <summary>
-        /// Generic move-down: swaps the target item's Order with the item immediately after it.
-        /// Uses the IOrderedItem interface for type-safe access (no reflection).
-        /// </summary>
-        /// <typeparam name="T">Item type implementing IOrderedItem.</typeparam>
-        /// <param name="collection">The ObservableCollection containing the items.</param>
-        /// <param name="target">The item to move down.</param>
-        /// <param name="renumber">Callback to renumber and refresh after the swap.</param>
-        void MoveItemDown<T>(ObservableCollection<T> collection, T target, Action renumber)
-            where T : class, IOrderedItem
-        {
-            var sorted = collection.OrderBy(item => item.Order).ToList();
-            int idx = sorted.IndexOf(target);
-            if (idx < 0 || idx >= sorted.Count - 1) return; // Already at the bottom
-
-            // Swap Order values with the next item
-            var next = sorted[idx + 1];
-            (next.Order, target.Order) = (target.Order, next.Order);
-
-            renumber(); // Re-number all items
-        }
-
-        /// <summary>
-        /// Re-numbers all proxy Order values to be sequential (1, 2, 3...)
-        /// based on their current sorting, then refreshes the list display.
-        /// Tracks the currently selected item by reference to restore correct selection
-        /// after re-sorting (the old index would point to the wrong item).
-        /// </summary>
-        void RenumberProxies()
-        {
-            // Track selected item by reference before clearing
-            var selectedItem = ProxyList.SelectedItem as ProxyConfig;
-            var sorted = _proxies.OrderBy(p => p.Order).ToList();
-            for (int i = 0; i < sorted.Count; i++)
-                sorted[i].Order = i + 1;
-            // Rebuild the ObservableCollection to trigger UI refresh with new order
-            _proxies.Clear();
-            foreach (var p in sorted) _proxies.Add(p);
-            // Restore selection by finding the item's new position after re-sorting
-            ProxyList.SelectedItem = selectedItem;
-            RefreshPreview();
-        }
-
-        /// <summary>
-        /// Re-numbers all visitor Order values to be sequential (1, 2, 3...)
-        /// based on their current sorting, then refreshes the list display.
-        /// Tracks the currently selected item by reference to restore correct selection
-        /// after re-sorting (the old index would point to the wrong item).
-        /// </summary>
-        void RenumberVisitors()
-        {
-            // Track selected item by reference before clearing
-            var selectedItem = VisitorList.SelectedItem as VisitorConfig;
-            var sorted = _visitors.OrderBy(v => v.Order).ToList();
-            for (int i = 0; i < sorted.Count; i++)
-                sorted[i].Order = i + 1;
-            _visitors.Clear();
-            foreach (var v in sorted) _visitors.Add(v);
-            // Restore selection by finding the item's new position after re-sorting
-            VisitorList.SelectedItem = selectedItem;
-            RefreshPreview();
-        }
-
         // ══ Editor visibility ════════════════════════════════════════════════
 
         /// <summary>Controls which editor panel is shown based on selection state.</summary>
@@ -776,7 +664,6 @@ namespace FrpManager.Views
         /// <summary>Adds a proxy from a template and selects it.</summary>
         void AddProxy(ProxyConfig t)
         {
-            t.Order = _proxies.Count + 1; // Assign order on add
             _proxies.Add(t);
             VisitorList.SelectedItem = null;
             ProxyList.SelectedItem = t;
@@ -787,7 +674,6 @@ namespace FrpManager.Views
         /// <summary>Adds a visitor from a template and selects it.</summary>
         void AddVisitor(VisitorConfig v)
         {
-            v.Order = _visitors.Count + 1; // Assign order on add
             _visitors.Add(v);
             ProxyList.SelectedItem = null;
             VisitorList.SelectedItem = v;
@@ -943,7 +829,7 @@ namespace FrpManager.Views
             }
 
             // ── Generate temp TOML and launch frpc ──
-            string tomlDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tomlset");
+            string tomlDir = AppDirHelper.TomlsetDir;
             Directory.CreateDirectory(tomlDir);
             string tmp = Path.Combine(tomlDir, "frpc_mgr_tmp.toml");
             File.WriteAllText(tmp, ConfigHelper.GenerateFrpcToml(_server, _proxies, _visitors));
@@ -1014,7 +900,7 @@ namespace FrpManager.Views
         /// </summary>
         void LoadTomlFileList()
         {
-            string tomlDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tomlset");
+            string tomlDir = AppDirHelper.TomlsetDir;
             TxtTomlDir.Text = tomlDir;
             TomlFilePanel.Children.Clear();
 
@@ -1025,10 +911,7 @@ namespace FrpManager.Views
                 return;
             }
 
-            // Sort by last modified time, newest first
-            var files = Directory.GetFiles(tomlDir, "*.toml")
-                                 .OrderByDescending(File.GetLastWriteTime)
-                                 .ToList();
+            var files = GetOrderedTomlFiles(tomlDir).ToList();
             if (files.Count == 0)
             {
                 TxtTomlHint.Text = L("S_TomlHintEmpty");
@@ -1036,15 +919,33 @@ namespace FrpManager.Views
                 return;
             }
 
-            foreach (var file in files)
-                TomlFilePanel.Children.Add(BuildTomlFileRow(file));
+            for (int i = 0; i < files.Count; i++)
+                TomlFilePanel.Children.Add(BuildTomlFileRow(files[i], i, files.Count));
+        }
+
+        List<string> GetOrderedTomlFiles(string tomlDir)
+        {
+            var files = Directory.GetFiles(tomlDir, "*.toml").ToList();
+            _settings.TomlFileOrder ??= new();
+            var known = _settings.TomlFileOrder
+                                 .Where(File.Exists)
+                                 .Where(f => files.Contains(f, StringComparer.OrdinalIgnoreCase))
+                                 .Distinct(StringComparer.OrdinalIgnoreCase)
+                                 .ToList();
+            var added = files.Except(known, StringComparer.OrdinalIgnoreCase)
+                             .OrderBy(f => Path.GetFileName(f))
+                             .ToList();
+
+            _settings.TomlFileOrder = known.Concat(added).ToList();
+            SettingsHelper.Save(_settings);
+            return _settings.TomlFileOrder.ToList();
         }
 
         /// <summary>
         /// Builds a card UI element for a single TOML config file in the library view.
         /// Shows filename, modification date, size, and load/delete action buttons.
         /// </summary>
-        UIElement BuildTomlFileRow(string path)
+        UIElement BuildTomlFileRow(string path, int index, int totalCount)
         {
             var info = new FileInfo(path);
             var modified = info.LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss");
@@ -1060,7 +961,10 @@ namespace FrpManager.Views
                 Margin = new Thickness(0, 0, 0, 8)
             };
             var grid = new Grid();
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
@@ -1081,7 +985,29 @@ namespace FrpManager.Views
                 FontSize = 11,
                 Margin = new Thickness(0, 3, 0, 0)
             });
-            Grid.SetColumn(infoPanel, 0);
+            var orderText = new TextBlock
+            {
+                Text = $"{index + 1}",
+                Foreground = new SolidColorBrush(Color.FromRgb(0x5A, 0x7D, 0x95)),
+                FontSize = 13,
+                FontWeight = FontWeights.SemiBold,
+                Width = 28,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            Grid.SetColumn(orderText, 0);
+            Grid.SetColumn(infoPanel, 1);
+
+            var btnUp = new Button
+            {
+                Content = L("S_MoveUp"),
+                Style = (Style)FindResource("SecondaryBtn"),
+                Padding = new Thickness(8, 7, 8, 7),
+                Margin = new Thickness(10, 0, 0, 0),
+                Tag = path,
+                IsEnabled = index > 0
+            };
+            btnUp.Click += (_, _) => MoveTomlFile((string)btnUp.Tag, -1);
+            Grid.SetColumn(btnUp, 2);
 
             // Load button
             var btnLoad = new Button
@@ -1099,7 +1025,7 @@ namespace FrpManager.Views
                 _settings.LastSavedFilePath = _lastFilePath;
                 SettingsHelper.Save(_settings);
             };
-            Grid.SetColumn(btnLoad, 1);
+            Grid.SetColumn(btnLoad, 3);
 
             // Delete button
             var btnDel = new Button
@@ -1129,13 +1055,42 @@ namespace FrpManager.Views
                     SetStatus(L("S_StatusDeleted") + Path.GetFileName(p));
                 }
             };
-            Grid.SetColumn(btnDel, 2);
+            Grid.SetColumn(btnDel, 4);
 
+            var btnDown = new Button
+            {
+                Content = L("S_MoveDown"),
+                Style = (Style)FindResource("SecondaryBtn"),
+                Padding = new Thickness(8, 7, 8, 7),
+                Margin = new Thickness(8, 0, 0, 0),
+                Tag = path,
+                IsEnabled = index < totalCount - 1
+            };
+            btnDown.Click += (_, _) => MoveTomlFile((string)btnDown.Tag, 1);
+            Grid.SetColumn(btnDown, 5);
+
+            grid.Children.Add(orderText);
             grid.Children.Add(infoPanel);
+            grid.Children.Add(btnUp);
             grid.Children.Add(btnLoad);
             grid.Children.Add(btnDel);
+            grid.Children.Add(btnDown);
             border.Child = grid;
             return border;
+        }
+
+        void MoveTomlFile(string path, int delta)
+        {
+            var files = GetOrderedTomlFiles(AppDirHelper.TomlsetDir);
+            int oldIndex = files.FindIndex(f => string.Equals(f, path, StringComparison.OrdinalIgnoreCase));
+            int newIndex = oldIndex + delta;
+            if (oldIndex < 0 || newIndex < 0 || newIndex >= files.Count) return;
+
+            files.RemoveAt(oldIndex);
+            files.Insert(newIndex, path);
+            _settings.TomlFileOrder = files;
+            SettingsHelper.Save(_settings);
+            LoadTomlFileList();
         }
 
         /// <summary>
@@ -1174,13 +1129,10 @@ namespace FrpManager.Views
                 _proxies.Clear();
                 if (model.TryGetValue("proxies", out var po) && po is TomlTableArray proxies)
                 {
-                    int order = 0;
                     foreach (TomlTable row in proxies)
                     {
-                        order++;
                         _proxies.Add(new ProxyConfig
                         {
-                            Order = order, // Preserve TOML array order
                             Name = row.TryGet("name") ?? "",
                             LocalIp = row.TryGet("localIP") ?? "127.0.0.1",
                             LocalPort = int.TryParse(row.TryGet("localPort"), out int lp) ? lp : 80,
@@ -1198,13 +1150,10 @@ namespace FrpManager.Views
                 _visitors.Clear();
                 if (model.TryGetValue("visitors", out var vo) && vo is TomlTableArray visitors)
                 {
-                    int order = 0;
                     foreach (TomlTable row in visitors)
                     {
-                        order++;
                         _visitors.Add(new VisitorConfig
                         {
-                            Order = order, // Preserve TOML array order
                             Name = row.TryGet("name") ?? "",
                             ServerName = row.TryGet("serverName") ?? "",
                             ServerUser = row.TryGet("serverUser") ?? "",
@@ -1472,7 +1421,7 @@ namespace FrpManager.Views
         /// </summary>
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
         {
-            if (_tray != null)
+            if (_tray != null && !_allowClose)
             {
                 // Minimize to tray instead of closing
                 e.Cancel = true;

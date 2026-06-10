@@ -10,16 +10,28 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>app.ico</ApplicationIcon>
+    <Version>1.0.1</Version>
+    <!-- IL3000: Assembly.Location is intentionally checked to detect single-file bundle -->
+    <NoWarn>IL3000</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
     <Resource Include="Themes/SkyTheme.xaml" />
-    <Content Include="app.ico" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="app.ico" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Tomlyn" Version="0.17.0" />
   </ItemGroup>
+
+  <Target Name="CopyPackageAssets" AfterTargets="Publish">
+    <ItemGroup>
+      <PackageAsset Include="app.ico" />
+      <PackageAsset Include="uninstall.bat" />
+      <PackageAsset Include="uninstall.ps1" />
+    </ItemGroup>
+    <Copy SourceFiles="@(PackageAsset)" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" />
+  </Target>
 
 </Project>

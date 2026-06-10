@@ -130,29 +130,18 @@
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <!-- Order number -->
-                                    <TextBlock Grid.Column="0" VerticalAlignment="Center"
-                                               Foreground="{StaticResource TextMutedBrush}"
-                                               FontSize="10" FontWeight="Bold" FontFamily="Consolas"
-                                               Margin="0,0,4,0" MinWidth="18" TextAlignment="Right">
-                                        <TextBlock.Text>
-                                            <Binding Path="Order" StringFormat="#{0}"/>
-                                        </TextBlock.Text>
-                                    </TextBlock>
                                     <!-- Type badge -->
-                                    <Border Grid.Column="1" CornerRadius="5" Padding="5,2"
+                                    <Border Grid.Column="0" CornerRadius="5" Padding="5,2"
                                             Margin="0,0,6,0" Background="{StaticResource AccentLightBrush}">
                                         <TextBlock Text="{Binding TypeLabel}"
                                                    Foreground="{StaticResource AccentDarkBrush}"
                                                    FontSize="10" FontWeight="Bold" FontFamily="Consolas"/>
                                     </Border>
                                     <!-- Name + summary -->
-                                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                         <TextBlock Text="{Binding Name}"
                                                    Foreground="{StaticResource TextPrimaryBrush}"
                                                    FontSize="13" FontWeight="SemiBold"
@@ -162,19 +151,8 @@
                                                    FontSize="11" FontFamily="Consolas"
                                                    TextTrimming="CharacterEllipsis"/>
                                     </StackPanel>
-                                    <!-- Move up/down buttons -->
-                                    <StackPanel Grid.Column="3" Orientation="Vertical" Margin="0,0,2,0">
-                                        <Button Style="{StaticResource IconBtn}" Content="▲"
-                                                Tag="{Binding}" Click="Btn_MoveProxyUp"
-                                                Padding="2,1" FontSize="7"
-                                                ToolTip="{DynamicResource S_MoveUp}"/>
-                                        <Button Style="{StaticResource IconBtn}" Content="▼"
-                                                Tag="{Binding}" Click="Btn_MoveProxyDown"
-                                                Padding="2,1" FontSize="7"
-                                                ToolTip="{DynamicResource S_MoveDown}"/>
-                                    </StackPanel>
                                     <!-- Delete button -->
-                                    <Button Grid.Column="4" Style="{StaticResource DangerBtn}"
+                                    <Button Grid.Column="2" Style="{StaticResource DangerBtn}"
                                             Content="✕" Tag="{Binding}" Click="Btn_DeleteProxy"/>
                                 </Grid>
                             </DataTemplate>
@@ -190,11 +168,6 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border CornerRadius="4" Padding="5,1" Margin="0,0,6,0"
-                                        Background="{StaticResource AccentTealLightBrush}">
-                                    <TextBlock Text="vis" Foreground="{StaticResource AccentTealBrush}"
-                                               FontSize="10" FontWeight="Bold" FontFamily="Consolas"/>
-                                </Border>
                                 <TextBlock Text="{DynamicResource S_VisitorRules}"
                                            Foreground="{StaticResource TextPrimaryBrush}"
                                            FontSize="13" FontWeight="SemiBold"/>
@@ -224,29 +197,18 @@
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <!-- Order number -->
-                                    <TextBlock Grid.Column="0" VerticalAlignment="Center"
-                                               Foreground="{StaticResource TextMutedBrush}"
-                                               FontSize="10" FontWeight="Bold" FontFamily="Consolas"
-                                               Margin="0,0,4,0" MinWidth="18" TextAlignment="Right">
-                                        <TextBlock.Text>
-                                            <Binding Path="Order" StringFormat="#{0}"/>
-                                        </TextBlock.Text>
-                                    </TextBlock>
                                     <!-- Visitor type badge -->
-                                    <Border Grid.Column="1" CornerRadius="5" Padding="5,2"
+                                    <Border Grid.Column="0" CornerRadius="5" Padding="5,2"
                                             Margin="0,0,6,0" Background="{StaticResource AccentTealLightBrush}">
                                         <TextBlock Text="{Binding TypeLabel}"
                                                    Foreground="{StaticResource AccentTealBrush}"
                                                    FontSize="10" FontWeight="Bold" FontFamily="Consolas"/>
                                     </Border>
                                     <!-- Name + summary -->
-                                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                         <TextBlock Text="{Binding Name}"
                                                    Foreground="{StaticResource TextPrimaryBrush}"
                                                    FontSize="13" FontWeight="SemiBold"
@@ -256,19 +218,8 @@
                                                    FontSize="11" FontFamily="Consolas"
                                                    TextTrimming="CharacterEllipsis"/>
                                     </StackPanel>
-                                    <!-- Move up/down buttons -->
-                                    <StackPanel Grid.Column="3" Orientation="Vertical" Margin="0,0,2,0">
-                                        <Button Style="{StaticResource IconBtn}" Content="▲"
-                                                Tag="{Binding}" Click="Btn_MoveVisitorUp"
-                                                Padding="2,1" FontSize="7"
-                                                ToolTip="{DynamicResource S_MoveUp}"/>
-                                        <Button Style="{StaticResource IconBtn}" Content="▼"
-                                                Tag="{Binding}" Click="Btn_MoveVisitorDown"
-                                                Padding="2,1" FontSize="7"
-                                                ToolTip="{DynamicResource S_MoveDown}"/>
-                                    </StackPanel>
                                     <!-- Delete button -->
-                                    <Button Grid.Column="4" Style="{StaticResource DangerBtn}"
+                                    <Button Grid.Column="2" Style="{StaticResource DangerBtn}"
                                             Content="✕" Tag="{Binding}" Click="Btn_DeleteVisitor"/>
                                 </Grid>
                             </DataTemplate>
@@ -486,17 +437,9 @@
                         <ScrollViewer x:Name="VisitorEditorPanel" Visibility="Collapsed"
                                       VerticalScrollBarVisibility="Auto" Margin="28,20,28,12">
                             <StackPanel MaxWidth="640">
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-                                    <Border CornerRadius="6" Padding="8,3" Margin="0,0,10,0"
-                                            Background="{StaticResource AccentTealLightBrush}"
-                                            VerticalAlignment="Center">
-                                        <TextBlock Text="[vis]" Foreground="{StaticResource AccentTealBrush}"
-                                                   FontSize="13" FontWeight="Bold" FontFamily="Consolas"/>
-                                    </Border>
-                                    <TextBlock x:Name="TxtVisitorTitle"
+                                <TextBlock x:Name="TxtVisitorTitle"
                                                Foreground="{StaticResource TextPrimaryBrush}"
-                                               FontSize="20" FontWeight="Bold" VerticalAlignment="Center"/>
-                                </StackPanel>
+                                               FontSize="20" FontWeight="Bold" Margin="0,0,0,20"/>
                                 <!-- Visitor basic -->
                                 <Border Style="{StaticResource Card}">
                                     <StackPanel>
